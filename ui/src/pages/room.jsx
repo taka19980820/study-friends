@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Header from '../components/Header'
 import SideMenu from '../components/SideMenu';
-import Main from '../components/Main';
+import Room from '../components/Room';
 import Container from '@mui/material/Container';
 
 // const inter = Inter({ subsets: ['latin'] })
@@ -38,7 +38,7 @@ export default function Home() {
       <Header open={open} handleDrawerOpen={handleDrawerOpen} />
       <SideMenu open={open} handleDrawerClose={handleDrawerClose} />
       <Container maxWidth="sm">
-        <Main open={open} />
+        <Room open={open} />
       </Container>
       
     </Box>
