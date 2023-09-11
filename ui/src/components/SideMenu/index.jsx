@@ -7,16 +7,15 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import IconButton from '@mui/material/IconButton';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
-import AccountBoxIcon from '@mui/icons-material/AccountBox';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import Link from 'next/link';
+import { AuthContext } from '../../context/Auth/AuthContext';
 
 const drawerWidth = 240;
 
@@ -38,27 +37,23 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 export default function SideMenu({ open, handleDrawerClose }) {
+  const { authUser } = React.useContext(AuthContext);
   const theme = useTheme();
   const menuItem = [
     {
       display: 'タイムライン',
       icon: <TimelineIcon />,
+      url: '/',
     },
     {
       display: 'ルーム一覧',
       icon: <DoorFrontIcon />,
+      url: '/rooms',
     },
     {
       display: '教材一覧',
       icon: <BorderColorIcon />,
-    },
-    {
-      display: 'プロフィール',
-      icon: <AccountBoxIcon />,
-    },
-    {
-      display: 'アカウント設定',
-      icon: <ManageAccountsIcon />,
+      url: '/materials',
     },
   ];
 
@@ -72,15 +67,28 @@ export default function SideMenu({ open, handleDrawerClose }) {
       <Divider />
       <List>
         {menuItem.map((value, index) => (
-          <ListItem key={value.display} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>
-                {value.icon}
-              </ListItemIcon>
-              <ListItemText primary={value.display} />
-            </ListItemButton>
+          
+          <ListItem key={value.display} style={{ padding: 0 }}>
+                <Link href={value.url} style={{ display: 'block', width: '100%' }}>
+                  <ListItemButton>
+                          <ListItemIcon>
+                            {value.icon}
+                          </ListItemIcon>
+                          <ListItemText primary={value.display} />
+                  </ListItemButton>
+                </Link>
           </ListItem>
         ))}
+        {authUser.is_admin && 
+           <Link href="/admin" style={{ display: 'block', width: '100%' }}>
+            <ListItemButton>
+                    <ListItemIcon>
+                      <SupervisorAccountIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="管理者ページ" />
+            </ListItemButton>
+          </Link> 
+        }
       </List>
     </StyledDrawer>
   );

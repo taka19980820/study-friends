@@ -1,28 +1,35 @@
-// import Head from 'next/head'
-// import Image from 'next/image'
-// import { Inter } from 'next/font/google'
-// import styles from '@/styles/Home.module.css'
-// import * as React from 'react';
-// import { Header } from '../components/Header';
-// import { styled } from '@mui/material/styles';
-// import Typography from '@mui/material/Typography';
-
 import * as React from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import Header from '../components/Header'
-import SideMenu from '../components/SideMenu';
+import NoLoginHeader from '../components/Header/NoLoginHeader'
+import NoLoginSideMenu from '../components/SideMenu/NoLoginSideMenu';
 import Register from '../components/User/Register';
 import Container from '@mui/material/Container';
+import useAuth from '../hooks/useAuth';
+import LoadingPage from '../components/Loading';
+import { useContext, useEffect, useState } from "react";
+import { useRouter } from 'next/router';
+import Router from 'next/router';
 
 // const inter = Inter({ subsets: ['latin'] })
 
 const drawerWidth = 240;
 
 export default function Home() {
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const router = useRouter();
+  const { authUser, loading } = useAuth(null);
+  const [open, setOpen] = useState(false);
+
+
+  if(loading) {
+      return <LoadingPage />
+  }
+
+  if(authUser) {
+      router.push('/');
+      return null;
+  }
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -35,8 +42,8 @@ export default function Home() {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-      <Header open={open} handleDrawerOpen={handleDrawerOpen} />
-      <SideMenu open={open} handleDrawerClose={handleDrawerClose} />
+      <NoLoginHeader open={open} handleDrawerOpen={handleDrawerOpen} />
+      <NoLoginSideMenu open={open} handleDrawerClose={handleDrawerClose} />
       <Container maxWidth="sm">
         <Register open={open} />
       </Container>

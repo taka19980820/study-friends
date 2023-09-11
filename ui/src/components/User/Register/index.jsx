@@ -1,15 +1,14 @@
 // Main.js
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
 import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import Link from 'next/link';
 import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
 import Typography from '@mui/joy/Typography';
-import Box from '@mui/material/Box';
 import { useRouter } from 'next/router';
-import { useRegisterInput } from '../../../context/RegisterInputContext';
-
+import * as RestAccess from '@/utils/RestAccess';
+import { useSnackbar } from '@/context/SnackbarContext';
+import { useForm } from 'react-hook-form';
 
 const drawerWidth = 240;
 
@@ -40,129 +39,82 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
-
-//タグ選択用スタイル
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
-
 
 export default function Register({ open }) {
-    //登録ボタン押下
     const router = useRouter();
-    const { registerInput, setRegisterInput } = useRegisterInput();
-    const handleSubmit = (event) => {
-      (console.log(event))
-      event.preventDefault();
-      setRegisterInput({
-          name: event.target.name.value,
-          email: event.target.email.value,
-          password: event.target.password.value,
-      })
-      router.push('/confirm');
-    }
+    const { showSnackbar } = useSnackbar();
+    const { register, handleSubmit, formState: { errors }, watch } = useForm();
 
-    //タグ選択
-    const theme = useTheme();
-    const [tags, setTags] = React.useState([]);
-  
-    const handleSetTags = (event) => {
-      const {
-        target: { value },
-      } = event;
-      setTags(
-        // On autofill we get a stringified value.
-        typeof value === 'string' ? value.split(',') : value,
-      );
-    };
-    const tagSet = [
-        { tagId: 1, tagName: 'PHP'},
-        { tagId: 2, tagName: 'Laravel'},
-        { tagId: 3, tagName: 'Java'},
-        { tagId: 4, tagName: 'Linux'},
-        { tagId: 5, tagName: 'CentOS'},
-        { tagId: 6, tagName: 'LPIC'},
-        { tagId: 7, tagName: 'CCNA'},
-    ]
-
-    React.useEffect(() => {
-        setTags([...tagSet])
-    }, [])
-
-    //生年月日
-    const currentDate = new Date().toISOString().split('T')[0];
-    const [date, setDate] = useState(currentDate);
-
-    //職業選択
-    const [job, setJob] = useState('');
-
-    //性別選択
-    const [gender, setGender] = useState('');
+    const password = watch("password");
     
-
+    const onSubmit = async (data) => {
+      const response = await RestAccess.post('/register', data, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+      });
+      if(response.status === 201) {
+        showSnackbar('ユーザー登録が完了しました。')
+        router.push('/login');
+      } else {
+        showSnackbar('エラーが発生しました', 'error');
+      }
+    }
+    
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
         <Card>
             <CardHeader title="ユーザー登録" />
             <CardContent>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
                         <Typography>名前</Typography>
                         <TextField
-                          variant="outlined"
-                          margin="normal"
-                          required
                           fullWidth
-                          id="name"
-                          name="name"
-                          autoComplete="name"
-                          autoFocus
+                          {...register("name", {
+                            required: "名前は必須です。",
+                          })}
+                          error={Boolean(errors.name)}
+                          helperText={errors.name && errors.name.message}
                         />
                         <Typography>メールアドレス</Typography>
                         <TextField
-                          variant="outlined"
-                          margin="normal"
-                          required
                           fullWidth
-                          id="email"
-                          name="email"
-                          autoComplete="email"
+                          {...register("email", {
+                            required: "メールアドレスは必須です。",
+                            pattern: {
+                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+                              message: "無効なメールアドレスです。"
+                            }
+                          })}
+                          error={Boolean(errors.email)}
+                          helperText={errors.email && errors.email.message}
                         />
                         <Typography>パスワード</Typography>
                         <TextField
-                          variant="outlined"
-                          margin="normal"
-                          required
                           fullWidth
-                          name="password"
                           type="password"
-                          id="password"
-                          autoComplete="current-password"
+                          {...register("password", {
+                            required: "パスワードは必須です。",
+                            minLength: {
+                              value: 8,
+                              message: "パスワードは8文字以上にしてください"
+                            }
+                          })}
+                          error={Boolean(errors.password)}
+                          helperText={errors.password && errors.password.message}
+                        />
+                        <Typography>パスワード確認</Typography>
+                        <TextField
+                          fullWidth
+                          type="password"
+                          {...register("password_confirmation", {
+                            required: "確認のためパスワードを再入力してください",
+                            validate: (value) =>
+                              value === password || "パスワードが一致しません"
+                          })}
+                          error={Boolean(errors.password_confirmation)}
+                          helperText={errors.password_confirmation && errors.password_confirmation.message}
                         />
                         <Button 
                             type='submit'
@@ -177,6 +129,7 @@ export default function Register({ open }) {
                           登録する
                         </Button>
                     </form>
+                    <Button sx={{fontWeight: 'bold', mt: 2}}><Link href="/login">ログインはこちら</Link></Button>
             </CardContent>
         </Card>
     </MainContainer>

@@ -21,6 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'gender',
+        'birthday',
+        'age',
+        'occupation',
+        'introduction'
     ];
 
     /**
@@ -42,4 +47,53 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function tags() {
+        return $this->belongsToMany(Tag::class, 'user_tag');
+    }
+
+    public function rooms() {
+        return $this->belongsToMany(Room::class, 'room_user');
+    }
+
+    public function isMemberOfRoom($roomId)
+    {
+        return $this->rooms()->where('rooms.id', $roomId)->exists();
+    }
+
+    public function materials() {
+        return $this->belongsToMany(Material::class, 'my_materials');
+    }
+
+    public function messasges() {
+        return $this->hasMany(Message::class);
+    }
+
+    // public function myMaterials() {
+    //     return $this->hasMany(MyMaterial::class);
+    // }
+
+    public function categories() {
+        return $this->hasMany(Category::class);
+    }
+
+    public function studyLogs() {
+        return $this->hasMany(StudyLog::class);
+    }
+
+    public function materialComments() {
+        return $this->hasMany(MaterialComment::class);
+    }
+
+    public function comments() {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function materialFavorites() {
+        return $this->hasMany(MaterialFavorite::class);
+    }
+
+    public function getIsAdminAttribute() {
+        return $this->attributes['is_admin'] == 1;
+    }
 }

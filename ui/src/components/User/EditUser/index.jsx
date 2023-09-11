@@ -1,75 +1,19 @@
 // Main.js
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
 import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import InputLabel from '@mui/material/InputLabel';
-import Input from '@mui/material/Input';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import Divider from '@mui/material/Divider';
-
-
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
-
-import CardMedia from '@mui/material/CardMedia';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
-import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
-import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
-import ListItem from '@mui/joy/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
-import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import IconButton from '@mui/joy/IconButton';
-
-
-import Menu from '@mui/material/Menu';
-
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
-
-import {FormContainer,  TextFieldElement, DateTimePickerElement} from 'react-hook-form-mui'
-
-import Stack from '@mui/material/Stack';
-
-import Autocomplete from '@mui/material/Autocomplete';
-
 import TagManager from '../../Tag/TagManager';
-
-
-// import MainContent from './MainContent'; // Create a separate component for Main content
+import * as RestAccess from '../../../utils/RestAccess'
+import * as dateTimeHandler from '../../../utils/dateTimeHandler'
+import { useRouter } from 'next/router'
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import CustomSnackbar from '../../SnackBar';
+import { useSnackbar } from '../../../context/SnackbarContext';
 
 const drawerWidth = 240;
 
@@ -100,16 +44,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
 
 //タグ選択用スタイル
 const ITEM_HEIGHT = 48;
@@ -129,147 +63,188 @@ function getStyles(name, personName, theme) {
           ? theme.typography.fontWeightRegular
           : theme.typography.fontWeightMedium,
     };
-  }
+}
 
 
 export default function EditUser({ open }) {
-    const {
-        control,
-        handleSubmit,
-      } = useForm();
-    
-      const onSubmit = (data) => {
-        console.log(data);
-    };
-
-    //タグ選択
-    const theme = useTheme();
-    const [tags, setTags] = React.useState([]);
-  
-    const handleSetTags = (event) => {
-      const {
-        target: { value },
-      } = event;
-      setTags(
-        // On autofill we get a stringified value.
-        typeof value === 'string' ? value.split(',') : value,
-      );
-    };
-    const tagSet = [
-        { tagId: 1, tagName: 'PHP'},
-        { tagId: 2, tagName: 'Laravel'},
-        { tagId: 3, tagName: 'Java'},
-        { tagId: 4, tagName: 'Linux'},
-        { tagId: 5, tagName: 'CentOS'},
-        { tagId: 6, tagName: 'LPIC'},
-        { tagId: 7, tagName: 'CCNA'},
-    ]
+    const { authUser } = React.useContext(AuthContext);
+    const router = useRouter();
+    const [ snackbar, setSnackbar ] = React.useState({ open: false, message: '', severity: 'success' });
+    const { showSnackbar } = useSnackbar();    
+    const [ display, setDisplay ] = React.useState(false);
+    const [ formData, setFormData ] = React.useState({
+      name : '',
+      gender : 0,
+      birthday : new Date().toISOString().split('T')[0],
+      occupation : 0,
+      introduction : '',
+      tags: []
+    })
 
     React.useEffect(() => {
-        setTags([...tagSet])
-    }, [])
+      const getUserData = async () => {
+          const user = await RestAccess.get('/users/' + authUser.id);
+          if(user.status === 200) {
+              const userData = user.data;
+              const userTags = userData.tags.map((tag) => tag.tag_name);
+              setFormData({
+                  name : userData.name,
+                  gender: userData.gender ? userData.gender : 0,
+                  birthday: userData.birthday ? userData.birthday : formData.birthday,
+                  occupation: userData.occupation ? userData.occupation : formData.occupation,
+                  introduction: userData.introduction ? userData.introduction : '',
+                  tags: userTags
+              });
+              setDisplay(true);
+          }
+      }
+      getUserData();
+  }, [])
 
-    //生年月日
-    const currentDate = new Date().toISOString().split('T')[0];
-    const [date, setDate] = useState(currentDate);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const response = await RestAccess.put('/users/' + authUser.id + '/edit',  formData, {
+      headers: {
+      'Content-Type': 'application/json'
+    }})
+    if(response.status === 200) {
+      showSnackbar('ユーザー情報を更新しました', 'success');
+      router.push('/users/'+authUser.id);
+    } else {
+      showSnackbar('ユーザー情報の更新に失敗しました', 'error');
+    }
 
-    //職業選択
-    const [job, setJob] = useState('');
+  }
 
-    //性別選択
-    const [gender, setGender] = useState('');
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  //タグ選択コールバック
+  const handleSetTags = (newTags) => {
+    setFormData({
+      ...formData,
+      tags: newTags
+    });
+};
+
+    
+
+  //生年月日
+  const currentDate = new Date().toISOString().split('T')[0];
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
     
 
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
-        <Card>
-            <CardHeader title="プロフィール編集" />
-            <CardContent>
-                    <Box component="form">
-                        <Typography>名前</Typography>
+        { display &&
+          <>
+            <Card>
+                <CardHeader title="プロフィール編集" />
+                <CardContent>
+                    <form onSubmit={handleSubmit} >
+                        <Box>
+                            <Typography>名前</Typography>
+                                <TextField
+                                    required
+                                    variant="outlined"
+                                    fullWidth
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    sx={{ mb: 2 }}
+                                /> 
+                            <Typography>
+                                生年月日
+                            </Typography>
                             <TextField
+                                sx={{ mb: 2, width: '200px' }}
+                                variant="outlined"
+                                type="date"
+                                id="birthday"
+                                name="birthday"
+                                value={formData.birthday}
+                                onChange={(e) => setFormData({ ...formData, birthday: dateTimeHandler.formatDate(e.target.value, 'YYYY-MM-DD')})}
+                                InputLabelProps={{
+                                shrink: true,
+                                }}
+                            />
+                            <Typography>
+                                職業
+                            </Typography>
+                            <Select
+                                value={formData.occupation}
+                                onChange={e => setFormData({...formData, occupation: e.target.value})}
+                                sx={{ mb: 2, width: '200px' }}
+                            >
+                                <MenuItem value={0} sx={{ display: "none"}}></MenuItem>
+                                <MenuItem value={1}>社会人</MenuItem>
+                                <MenuItem value={2}>学生</MenuItem>
+                                <MenuItem value={3}>その他</MenuItem>
+                            </Select>
+                            <Typography>
+                                性別
+                            </Typography>
+                            <Select
+                                value={formData.gender}
+                                onChange={e => setFormData({...formData, gender: e.target.value})}
+                                sx={{ mb: 2, width: '200px' }}
+                            >
+                                <MenuItem value={0}sx={{ display: "none"}}></MenuItem>
+                                <MenuItem value={1}>男性</MenuItem>
+                                <MenuItem value={2}>女性</MenuItem>
+                                <MenuItem value={9}>その他</MenuItem>
+                            </Select>             
+                            <Typography>タグ(複数選択可)</Typography>
+                            <TagManager 
+                                  callBack={handleSetTags}
+                                  tagSet={formData.tags}
+                            />
+                            <Typography sx={{ mt: 2}}>自己紹介</Typography>
+                            <TextField
+                                id="introduction"
+                                name="introduction"
+                                multiline
+                                rows={3}
                                 variant="outlined"
                                 fullWidth
+                                value={formData.introduction}
+                                onChange={handleChange}
                                 sx={{ mb: 2 }}
-                             /> 
-                        <Typography>
-                            生年月日
-                        </Typography>
-                        <TextField
-                            sx={{ mb: 2, width: '200px' }}
-                            variant="outlined"
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            InputLabelProps={{
-                            shrink: true,
-                            }}
-                        />
-                        <Typography>
-                            職業
-                        </Typography>
-                        <Select
-                            value={job}
-                            onChange={(e) => setJob(e.target.value)}
-                            sx={{ mb: 2, width: '200px' }}
-                        >
-                            <MenuItem value={"society"}>社会人</MenuItem>
-                            <MenuItem value={"student"}>学生</MenuItem>
-                            <MenuItem value={"other"}>その他</MenuItem>
-                        </Select>
-                        <Typography>
-                            性別
-                        </Typography>
-                        <Select
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value)}
-                            sx={{ mb: 2, width: '200px' }}
-                        >
-                            <MenuItem value={"male"}>男性</MenuItem>
-                            <MenuItem value={"femaie"}>女性</MenuItem>
-                            <MenuItem value={"other"}>その他</MenuItem>
-                        </Select>             
-                        <Typography>タグ(複数選択可)</Typography>
-                        <TagManager suggestions={['React', 'MUI', 'JavaScript', 'PHP']}/>
-                        {/* <Select
-                            multiple
-                            value={tags}
-                            onChange={handleSetTags}
-                            MenuProps={MenuProps}
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        >
-                            {tags.map((value) => {
-                                return (
-                                <MenuItem 
-                                    key={value.tagId} 
-                                    value={value.tagName} 
-                                    style={getStyles(value, tags, theme)}
-                                >
-                                    {value.tagName}
-                                </MenuItem>
-                            )})} */}
-                        {/* </Select> */}
-                        <Typography sx={{ mt: 2}}>自己紹介</Typography>
-                        <TextField
-                            multiline
-                            rows={3}
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                    </Box>
-                    <Button sx={{
+                            />
+                        </Box>
+                        <Button 
+                          sx={{
                             width: '100%',
                             "@media screen and (max-width:600px)": {
                                 width: '100%',
                             },
-                        }} variant="contained">
+                          }} 
+                          variant="contained"
+                          type="submit"
+                        >
                             プロフィールを更新する
                         </Button>
-            </CardContent>
-        </Card>
+                    </form>
+                </CardContent>
+            </Card>
+          </>
+        }
+        <CustomSnackbar
+          open={snackbar.open}
+          handleClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          message={snackbar.message}
+        />
     </MainContainer>
     )
 };

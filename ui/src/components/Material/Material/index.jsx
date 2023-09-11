@@ -63,15 +63,19 @@ import AddIcon from '@mui/icons-material/Add';
 import Link from 'next/link'
 import MuiLink from '@mui/material/Link';
 
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
+import * as dateTimeHandler from '../../../utils/dateTimeHandler'
+import * as RestAccess from '../../../utils/RestAccess';
+import { useSnackbar } from '../../../context/SnackbarContext';
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import MaterialFavorite from '../../Favorite/MaterialFavorite';
+import { useRouter } from 'next/router';
+import CategorySelectDialog from '../../Category/CategorySelectDialog';
 
-import SearchBar from '../../Search/KeyWordSearch';
-import TagManager from '../../Tag/TagManager';
-
-export default function Material({ open }) {
+export default function Material({ open, materialData, isLiked, isRegisterd, categories }) {
+    const { authUser } = React.useContext(AuthContext);
+    const router = useRouter();
+    const { showSnackbar } = useSnackbar();
+    //削除確認ダイアログ
     const [materialDetailOpen, setMaterialDetailOpen] = React.useState(false);
     const [materialDetaillValues, setMaterialDetailValues] = React.useState({
         roomId: null,
@@ -116,7 +120,7 @@ export default function Material({ open }) {
     //My教材に登録
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [dialogText, setDialogText] = React.useState('');
-    const [registerd, setRegisterd] = React.useState(false);
+    const [registerd, setRegisterd] = React.useState(isRegisterd);
     const handleDialogOpen = (text) => {
         setDialogText(text)
         setDialogOpen(true);
@@ -139,15 +143,11 @@ export default function Material({ open }) {
         </Dialog>
     );
 
-    const handleRegisterMaterial = () => {
-        if(registerd) {
-            setRegisterd(false);
-            handleDialogOpen('My教材から削除しました');
-        } else {
-            setRegisterd(true)
-            handleDialogOpen('My教材に追加しました');
-        }
-    }
+    
+
+
+
+    
 
     
     //文字サイズ関連
@@ -171,7 +171,80 @@ export default function Material({ open }) {
             window.removeEventListener('resize', updateFontSize);
         };
     }, []);
+
+    //コメント投稿
+    const [ materialComments, setMaterialComments ] = React.useState([...materialData.material_comments]);
+    const [ comment, setComment ] = React.useState('');
+    const postComment = async (e) => {
+        e.preventDefault();
+
+        const response = await RestAccess.post('/materials/' + materialData.id + '/comments', {comment: comment});
+        if(response.status == 200) {
+            setMaterialComments((prev) => [...prev, response.data]);
+            setComment('');
+            showSnackbar('コメントを投稿しました');
+
+        } else {
+            showSnackbar('コメントを投稿できませんでした', 'error');
+        }
+    }
+
+    //コメント削除
+    const deleteComment = async (comment) => {
+        // console.log(comment)
+        const response = await RestAccess.del('/materials/' + materialData.id + '/comments/' + comment.id);
+        if(response.status == 200) {
+            const newComments = materialComments.filter((item) => item.id !== comment.id)
+            setMaterialComments(newComments);
+            showSnackbar('コメントを削除しました');
+        } else {
+            showSnackbar('コメントを削除できませんでした', 'error');
+        }
+    }
     
+    //教材なし
+    if(materialData.id == 14) {
+        return null;
+    }
+
+
+    const [ categoryDialog, setCategoryDialog ] = React.useState(false);
+    const handleRegisterMaterial = () => {
+        if(!registerd) {
+            setCategoryDialog(true);
+        } else {
+            removeMaterial();
+        }
+    }
+    const addMaterial = async (categoryId) => {
+        const response = await RestAccess.post('/materials/' + materialData.id + '/add', { category_id: categoryId}, {
+            headers: {
+            'Content-Type': 'application/json'
+        }})
+        if(response.status === 200) {
+            setRegisterd(true);
+            setCategoryDialog(false);
+            showSnackbar('My教材に追加しました');
+        } else {
+            showSnackbar('エラーが発生しました', 'error');
+        }
+        // console.log(categoryId);
+    }
+
+    const removeMaterial = async () => {
+        const response = await RestAccess.del('/users/' + authUser.id + '/materials/' + materialData.id + '/remove');
+        if(response.status === 200) {
+            setRegisterd(false);
+            setCategoryDialog(false);
+            showSnackbar('My教材から削除しました');
+        } else {
+            showSnackbar('エラーが発生しました', 'error');
+        }
+    }
+
+    const handleCategoryDialogClose = () => {
+        setCategoryDialog(false);
+    }
 
   return  (
     <>
@@ -186,44 +259,36 @@ export default function Material({ open }) {
                         sx={{ width: '5em' }}
                     />
                 </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <MuiLink onClick={handleMaterialDetailOpen} underline="hover" color='black' component="button" sx={{ fontSize: fontSize, textAlign: 'left' }}>
-                        <strong>PHPの教科書PHPの教科書PHPの教科書</strong>
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                    <MuiLink onClick={handleMaterialDetailOpen} underline="hover" color='black' component="button" sx={{ fontSize: fontSize, textAlign: 'left'   }}>
+                        <strong>{materialData.material_name}</strong>
                     </MuiLink>
                 </Box>
-                <div style={{ flexGrow: 1 }}></div>
+                {/* <Box sx={{ flexGrow: 1 }}></Box> */}
                 <Button 
                     onClick={handleRegisterMaterial} 
                     color={registerd ? 'inherit': 'primary'} 
                     sx={{ 
                         height: '40px', 
-                        width: '200px', 
+                        width: '150px',
+                        whiteSpace: 'nowrap',
                         "@media screen and (max-width:480px)": {
                             fontSize: '12px'
                         }
                     }} 
                     variant="contained">
-                    {registerd ? 'My教材から削除': 'My教材に追加'}
+                    {registerd ? '追加済み': 'My教材に追加'}
                 </Button>
                 </Stack>
             </CardContent>
 
             <CardActions disableSpacing>
-                <IconButton 
-                    aria-label="add to favorites" 
-                    sx={favorit ? { color: 'red'} : {color: 'text.secondary'}}
-                    onClick={handleFavorit}
-                >
-                    <FavoriteIcon />
-                </IconButton>
-                <Typography variant="caption">
-                    いいね2件
-                </Typography>
+                <MaterialFavorite isLiked={isLiked} favorites={materialData.material_favorites} materialId={materialData.id}/>
                 <IconButton aria-label="share" onClick={handleExpandClick}>
                     <CommentIcon />
                 </IconButton>
                 <Typography variant="caption">
-                    コメント2件
+                    コメント{materialComments.length}件
                 </Typography>
             </CardActions>
 
@@ -231,67 +296,72 @@ export default function Material({ open }) {
                 <CardContent>
                     {/* コメント */}
                     <List sx={{ bgcolor: 'background.paper'}}>
-                        <ListItem>
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    R
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemContent　sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                            <div style={{ flex: 1 }}>
-                                <Typography level="title-sm">乙骨由太郎太</Typography>
-                                <Typography level="body-sm">
-                                Wish I could come, but I&apos;m out of town this Friday.
-                                </Typography>
-                            </div>
-                            </ListItemContent>
-                            <IconButton>
-                                <ListItemIcon sx={{ justifyContent: 'center' }}>
-                                    <DeleteIcon />
-                                </ListItemIcon>
-                            </IconButton>
-                        </ListItem>
-                        <Divider variant="inset" component="li" sx={{ mb: 1 }}/>
-
-                        <ListItem>
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    R
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemContent sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                            <div style={{ flex: 1 }}>
-                                <Typography level="title-sm">乙骨由太郎太</Typography>
-                                <Typography level="body-sm">
-                                ああ、なんて素敵な日だ、幸せと思える今日も、夢破れ挫ける今日も、ああ、あきらめずもがいている、せまいひろい世界で奇跡を歌う
-                                </Typography>
-                            </div>
-                            </ListItemContent>
-                            <IconButton>
-                                <ListItemIcon sx={{ justifyContent: 'center' }}>
-                                    <DeleteIcon />
-                                </ListItemIcon>
-                            </IconButton>
-                        </ListItem>
-                        <Divider variant="inset" component="li" sx={{ mb: 1 }}/>
-        
+                        {materialComments.length > 0 ?
+                            materialComments.map((value) => {
+                                return (
+                                    <React.Fragment key={value.id}>
+                                        <ListItem>
+                                            <ListItemAvatar>
+                                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                                                    {value.user.name.slice(0, 1)}
+                                                </Avatar>
+                                            </ListItemAvatar>
+                                            <ListItemContent sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <Typography level="title-sm">{value.user.name}</Typography>
+                                                <Typography level="body-sm">
+                                                    {value.comment}
+                                                </Typography>
+                                            </div>
+                                            </ListItemContent>
+                                            {authUser.id == value.user.id &&
+                                                <IconButton onClick={() => deleteComment(value)}>
+                                                    <ListItemIcon sx={{ justifyContent: 'center' }}>
+                                                        <DeleteIcon />
+                                                    </ListItemIcon>
+                                                </IconButton>
+                                            }
+                                        </ListItem>
+                                        <Divider variant="inset" component="li" sx={{ mb: 1 }}/>
+                                    </React.Fragment>
+                                )
+                            })
+                            :
+                            <Typography>コメントはありません</Typography>
+                        }
                     
-                        </List>                   
+                    </List>                   
                     {/* コメントここまで */}
 
                     {/* コメント入力欄 */}
-                    <Box sx={{ mt: 1 }}>
-                        <TextField fullWidth={true} id="outlined-basic" label="コメント" variant="outlined" />
-                        <Button sx={{
-                            mt: 2,
-                            width: 100,
-                            "@media screen and (max-width:600px)": {
-                                width: '100%',
-                            },
-                        }} variant="contained">
-                            送信
-                        </Button>
-                    </Box>
+                    
+                    <form onSubmit={postComment}>
+                        <Box sx={{ mt: 1 }}>
+                            <TextField 
+                                fullWidth={true} 
+                                id="outlined-basic" 
+                                label="コメント" 
+                                variant="outlined" 
+                                name="comment"
+                                value={comment}
+                                onChange={e => setComment(e.target.value)}
+                            />
+                            <Button
+                                type='submit'
+                                disabled={comment.length == 0}
+                                sx={{
+                                mt: 2,
+                                width: 100,
+                                "@media screen and (max-width:600px)": {
+                                    width: '100%',
+                                },
+                                }} 
+                                variant="contained"
+                            >
+                                送信
+                            </Button>
+                        </Box>
+                    </form>
                     {/* コメント入力欄ここまで */}
                 </CardContent>
             </Collapse>
@@ -304,47 +374,44 @@ export default function Material({ open }) {
             aria-describedby="alert-dialog-description"
             fullWidth
         >
-            <DialogTitle sx={{ mb: 2, textAlign: 'center', borderBottom: '1px solid', borderColor: '#C0C0C0', fontWeight: 'bold' }}>PHPの教科書</DialogTitle>
+            <DialogTitle sx={{ mb: 2, textAlign: 'center', borderBottom: '1px solid', borderColor: '#C0C0C0', fontWeight: 'bold' }}>{materialData.material_name}</DialogTitle>
             <DialogContent>
-                <Typography sx={{ color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>教材内容</Typography>
+                <Typography sx={{ color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>教材説明</Typography>
                 <DialogContentText sx={{ mb: 1 }}>
-                    PHPの教科書です。PHPの基礎から、実際に簡単なアプリ開発を通して勉強できるっさね。
+                    {materialData.description}
                 </DialogContentText>
                 <Typography sx={{ mb: 1, color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>タグ</Typography>
                 <Box display="flex" flexWrap="wrap" sx={{ pb: 2, gap: '3px' }}>
-                    {/* <Chip key={value.tagId} label={value.tagName} color="primary" /> */}
-                    <Chip label='PHP' color="primary" />
-                    <Chip label='プログラミング' color="primary" />
+                    {materialData.tags.length > 0 && 
+                        materialData.tags.map((value) => {
+                            return <Chip key={value.id} label={value.tag_name} color="primary" />
+                        })
+                    }
                 </Box>
                 <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>著者名</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}></Grid>
+                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{materialData.author != null && materialData.author}</Grid>
                 </Grid>
                 <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>ページ数</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}></Grid>
+                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{materialData.pages != null && materialData.pages}</Grid>
                 </Grid>
                 <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>出版社</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}></Grid>
+                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{materialData.publisher != null && materialData.publisher}</Grid>
                 </Grid>
                 <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>URL</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}>100人</Grid>
-                </Grid>
-                <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
-                    <Grid item xs={4}>登録者数</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}>100人</Grid>
+                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{materialData.url != null && materialData.author}</Grid>
                 </Grid>
             </DialogContent>
 
             <DialogActions>
             <Button onClick={handleMaterialDetailClose}>キャンセル</Button>
-            <Button onClick={handleMaterialDetailClose}>
-                My教材に追加
-            </Button>
+            <Link href={'/materials/' + materialData.id + '/edit'}><Button>編集する</Button></Link>
             </DialogActions>
         </Dialog>
+        <CategorySelectDialog categories={categories} callback={addMaterial} open={categoryDialog} dialogClose={handleCategoryDialogClose}/>
         {renderDialog}
     </>
     )

@@ -1,67 +1,15 @@
-// Main.js
 import React from 'react';
 import { styled } from '@mui/material/styles';
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import InputLabel from '@mui/material/InputLabel';
-import Input from '@mui/material/Input';
+import { Card, CardHeader, CardContent, TextField, Button, FormControl, FormHelperText } from '@mui/material';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
-
-import CardMedia from '@mui/material/CardMedia';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
-import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import CommentIcon from '@mui/icons-material/Comment';
+import * as RestAccess from '../../../utils/RestAccess';
+import { useSnackbar  } from '../../../context/SnackbarContext';
+import { useRouter } from 'next/router';
+import { useForm } from 'react-hook-form';
 
-// import List from '@mui/material/List';
-import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
-import ListItem from '@mui/joy/ListItem';
-import Divider from '@mui/material/Divider';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
-import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import IconButton from '@mui/joy/IconButton';
-
-
-import Menu from '@mui/material/Menu';
-
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
-
-import {FormContainer,  TextFieldElement, DateTimePickerElement} from 'react-hook-form-mui'
-
-
-// import MainContent from './MainContent'; // Create a separate component for Main content
 
 const drawerWidth = 240;
 
@@ -92,76 +40,131 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
+export default function EditLog({ open, logId }) {
+    const router = useRouter();
+    const { showSnackbar } = useSnackbar();    
+    const { register, handleSubmit, formState: { errors }, setValue } = useForm({
+      mode: "onChange",
+      defaultValues: {
+        study_date: "",
+        study_hour: 0,
+        hour: 0,
+        minuite: 0,
+        memo: '',
+      },
+    });
+
+    const [ material, setMaterial ] = React.useState({});
+
+    React.useEffect(() => {
+        const fetchLogData = async () => {
+            const response = await RestAccess.get('/study-logs/' + logId);
+            if(response.status == 200) {
+                const logData = response.data;
+                setMaterial(logData.my_material.material);
+                setValue('hour', Math.floor(logData.study_hour / 60));
+                setValue('minuite', logData.study_hour % 60);
+                setValue('study_hour', logData.study_hour);
+                setValue('study_date', logData.study_date);
+                setValue('memo', logData.memo == null ? '' : logData.memo);
+            } else {
+                showSnackbar('エラーが発生しました');
+            }
+        }
+        fetchLogData();
+    }, []);
+
+    const onSubmit = async (data) => {
+      const studyTime = Number(data.hour) * 60 + Number(data.minuite);
+      const requestData = {
+        study_date: data.study_date, 
+        study_hour: studyTime,
+        memo: data.memo
+      };
+      const response = await RestAccess.put('/study-logs/' + logId + '/edit',  requestData, {
+        headers: {
+        'Content-Type': 'application/json'
+      }})
+      if(response.status === 200) {
+        showSnackbar('勉強記録を更新しました', 'success');
+        // router.push('/');
+        router.back();
+      } else {
+        showSnackbar(response.data.message, 'error');
+      }
+  
+    }
 
 
-export default function EditLog({ open }) {
-    const {
-        control,
-        handleSubmit,
-      } = useForm();
-    
-      const onSubmit = (data) => {
-        console.log(data);
-    };
-    //勉強日時
-    const [studyDateTime, setStudyDateTime] = React.useState(null);
-    //教材選択
-    const [textBook, setTextBook] = React.useState('');
-    const handleSetTextBook = (event) => {
-      setTextBook(event.target.value);
-    };
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
         <Card>
             <CardHeader title="勉強記録編集" />
             <CardContent>
-                {/* <FormControl fullWidth> */}
-                    <Box component="form">
-                        {/* <FormControl fullWidth> */}
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <Box>
                             <Typography>教材選択</Typography>
-                            <Select
-                                labelId="select-textbook-label"
+                            <TextField
                                 id="select-textbook"
-                                value={textBook}
-                                onChange={handleSetTextBook}
+                                name="material"
+                                value={material.material_name}
                                 fullWidth
-                                sx={{ mb: 3} }
-                            >
-                                <MenuItem value={10}>教材なし</MenuItem>
-                                <MenuItem value={20}>PHPの教科書</MenuItem>
-                                <MenuItem value={30}>Larabelリファレンス</MenuItem>
-                            </Select>
-                            <Typography>開始日時</Typography>
-                            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DateTimePicker sx={{ mb: 3} } value={studyDateTime} onChange={(newValue) => setStudyDateTime(newValue)} />
-                            </LocalizationProvider>
+                                sx={{ mb: 3}}
+                                disabled
+                            />
+                            <Typography>
+                                日付
+                            </Typography>
+                            <TextField
+                                sx={{ mb: 2, width: '200px' }}
+                                variant="outlined"
+                                type="date"
+                                {...register("study_date")}
+                            />
                             <Typography>勉強時間</Typography>
-                            <OutlinedInput
-                                endAdornment={<InputAdornment position="end">時間</InputAdornment>}
-                                sx={{ mr: 3 }}
-                            />
-                            <OutlinedInput
-                                endAdornment={<InputAdornment position="end">分</InputAdornment>}
-                            />
-                            {/* <Typography sx={{ mt: 3 }}>タイトル</Typography>
-                            <TextField fullWidth={true} variant="outlined" /> */}
+                            <FormControl variant="outlined">
+                              <OutlinedInput
+                                  endAdornment={<InputAdornment position="end">時間</InputAdornment>}
+                                  sx={{ mr: 3 }}
+                                  {...register("hour", {
+                                    pattern: {
+                                      value: /^(?:[1-9]?[0-9])$/,
+                                      message: '数値を入力してください'
+                                    }
+                                  })}
+                                  error={Boolean(errors.hour)}
+                              />
+                              {errors.hour && (
+                                  <FormHelperText error id="study-hour">
+                                    {errors.hour.message}
+                                  </FormHelperText>
+                              )}
+                            </FormControl>
+                            <FormControl variant="outlined">
+                              <OutlinedInput
+                                  endAdornment={<InputAdornment position="end">分</InputAdornment>}
+                                  {...register("minuite", {
+                                    pattern: {
+                                      value: /^(?:[1-5]?[0-9])$/,
+                                      message: '0から59の数値を入力してください'
+                                    }
+                                  })}
+                                  error={Boolean(errors.minuite)}
+                              />
+                              {errors.minuite && (
+                                <FormHelperText error id="study-minuite">
+                                  {errors.minuite.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
                             <Typography sx={{ mt: 3 }}>メモ</Typography>
                             <TextField
                                 multiline
                                 rows={2}
                                 variant="outlined"
                                 fullWidth
+                                {...register("memo")}
                             />
                             <Button sx={{
                                 mt: 2,
@@ -169,12 +172,11 @@ export default function EditLog({ open }) {
                                 "@media screen and (max-width:600px)": {
                                     width: '100%',
                                 },
-                            }} variant="contained">
+                            }} variant="contained" type="submit">
                                 投稿
                             </Button>
-                        {/* </FormControl> */}
                     </Box>
-                {/* </FormControl>   */}
+                </form>
             </CardContent>
         </Card>
     </MainContainer>

@@ -34,8 +34,17 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
+import * as dateTimeHandler from '../../../utils/dateTimeHandler'
+import * as RestAccess from '../../../utils/RestAccess';
+import { useSnackbar } from '../../../context/SnackbarContext';
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import Favorite from '../../Favorite';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-export default function Log() {
+export default function Log({ logData, isLiked, callback }) {
+    const { authUser } = React.useContext(AuthContext);
+    const router = useRouter();
     //削除確認ダイアログ
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const handleDialogOpen = () => {
@@ -45,6 +54,13 @@ export default function Log() {
     const handleDialogClose = () => {
         setDialogOpen(false);
     };
+
+    //勉強ログ削除
+    const deleteLog = async () => {
+        setDialogOpen(false);
+        await callback(logData.id)
+    }
+    
     const renderDialog = (
         <Dialog
             open={dialogOpen}
@@ -59,7 +75,7 @@ export default function Log() {
             </DialogContent>
             <DialogActions>
             <Button onClick={handleDialogClose}>キャンセル</Button>
-            <Button onClick={handleDialogClose} autoFocus>
+            <Button onClick={deleteLog} autoFocus>
                 削除
             </Button>
             </DialogActions>
@@ -84,11 +100,13 @@ export default function Log() {
             'aria-labelledby': 'basic-button',
             }}
         >
-            <MenuItem onClick={handleToolbarClose}>編集</MenuItem>
+            <MenuItem><Link href={{pathname: "/logs/edit/" , query: { logId: logData.id}}} as="/logs/edit/">編集</Link></MenuItem>
             <MenuItem onClick={handleDialogOpen}>削除</MenuItem>
         </Menu>
     );
     //メニュー開閉制御ここまで
+
+
 
     //コメント欄開閉制御
     const [expanded, setExpanded] = React.useState(false);
@@ -96,41 +114,63 @@ export default function Log() {
       setExpanded(!expanded);
     };
     //コメント欄開閉制御ここまで
-    //いいね機能
-    const [favorit, addFavorit] = React.useState(false);
-    const handleFavorit = () => {
-        //apiと通信していいね追加または、削除。
-        //初期状態の時いいねしているならtrueにする。
-        addFavorit(!favorit);
-    };
-    //いいね機能ここまで
+    
 
+    const { showSnackbar } = useSnackbar();
+    //コメント投稿
+    const [ logComments, setLogComments ] = React.useState([...logData.comments]);
+    const [ comment, setComment ] = React.useState('');
+    const postComment = async (e) => {
+        e.preventDefault();
+
+        const response = await RestAccess.post('study-logs/' + logData.id + '/comments', {comment: comment});
+        if(response.status == 200) {
+            setLogComments([...logComments, response.data]);
+            setComment('');
+            showSnackbar('コメントを投稿しました');
+
+        } else {
+            showSnackbar('コメントを投稿できませんでした', 'error');
+        }
+    }
+    //コメント削除
+    const deleteComment = async (comment) => {
+        // console.log(comment)
+        const response = await RestAccess.del('study-logs/' + logData.id + '/comments/' + comment.id);
+        if(response.status == 200) {
+            const newComments = logComments.filter((item) => item.id !== comment.id)
+            setLogComments(newComments);
+            showSnackbar('コメントを削除しました');
+        } else {
+            showSnackbar('コメントを削除できませんでした', 'error');
+        }
+    }
   return  (
     <>
     <Card sx={{ mb: 5 }}>
         <CardHeader
             avatar={
             <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                R
+                {logData.user.name.slice(0, 1)}
             </Avatar>
             }
-            action={
-            <IconButton 
-                aria-label="settings"
-                onClick={handleToolbarOpen}
-            >
-                <MoreVertIcon />
-            </IconButton>
+            action={ logData.user_id === authUser.id &&
+                <IconButton 
+                    aria-label="settings"
+                    onClick={handleToolbarOpen}
+                >
+                    <MoreVertIcon />
+                </IconButton>
             }
-            title="堀越栄花"
-            subheader="2023年8月11日"
+            title={logData.user.name}
+            subheader={dateTimeHandler.formatDate(logData.study_date)}
         />
 
         <CardContent>
             <Typography variant="body2" sx={{ mb: 2}}>
-                データベースの勉強をしました。
-                疲れました。
+                {logData.memo}
             </Typography>
+
             <Paper sx={{ 
                 display: 'flex',
                 p: 2
@@ -145,31 +185,22 @@ export default function Log() {
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography component="div" sx={{ typography: { sm: 'h6', xs: 'body2'}}}>
-                        <strong>データベース勉強</strong>
+                        <strong>{logData.my_material.material.material_name}</strong>
                     </Typography>
                     <Typography component="div" variant="h5">
-                        <strong>1時間30分</strong>
+                        <strong>{dateTimeHandler.formatTime(logData.study_hour)}</strong>
                     </Typography>
                 </Box>
             </Paper>
         </CardContent>
 
         <CardActions disableSpacing>
-            <IconButton 
-                aria-label="add to favorites" 
-                sx={favorit ? { color: 'red'} : {color: 'text.secondary'}}
-                onClick={handleFavorit}
-            >
-                <FavoriteIcon />
-            </IconButton>
-            <Typography variant="caption">
-                いいね2件
-            </Typography>
+            <Favorite isLiked={isLiked} favorites={logData.favorites} logId={logData.id}/>
             <IconButton aria-label="share" onClick={handleExpandClick}>
                 <CommentIcon />
             </IconButton>
             <Typography variant="caption">
-                コメント2件
+                コメント{logComments.length}件
             </Typography>
         </CardActions>
 
@@ -177,67 +208,71 @@ export default function Log() {
             <CardContent>
                 {/* コメント */}
                 <List sx={{ bgcolor: 'background.paper'}}>
-                    <ListItem>
-                        <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                R
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemContent　sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <div style={{ flex: 1 }}>
-                            <Typography level="title-sm">乙骨由太郎太</Typography>
-                            <Typography level="body-sm">
-                            Wish I could come, but I&apos;m out of town this Friday.
-                            </Typography>
-                        </div>
-                        </ListItemContent>
-                        <IconButton>
-                            <ListItemIcon sx={{ justifyContent: 'center' }}>
-                                <DeleteIcon />
-                            </ListItemIcon>
-                        </IconButton>
-                    </ListItem>
-                    <Divider variant="inset" component="li" sx={{ mb: 1 }}/>
-
-                    <ListItem>
-                        <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                R
-                            </Avatar>
-                        </ListItemAvatar>
-                        <ListItemContent　sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <div style={{ flex: 1 }}>
-                            <Typography level="title-sm">乙骨由太郎太</Typography>
-                            <Typography level="body-sm">
-                            ああ、なんて素敵な日だ、幸せと思える今日も、夢破れ挫ける今日も、ああ、あきらめずもがいている、せまいひろい世界で奇跡を歌う
-                            </Typography>
-                        </div>
-                        </ListItemContent>
-                        <IconButton>
-                            <ListItemIcon sx={{ justifyContent: 'center' }}>
-                                <DeleteIcon />
-                            </ListItemIcon>
-                        </IconButton>
-                    </ListItem>
-                    <Divider variant="inset" component="li" sx={{ mb: 1 }}/>
-    
+                    {logComments.length > 0 ?
+                        logComments.map((value) => {
+                            return (
+                                <React.Fragment key={value.id}>
+                                    <ListItem>
+                                        <ListItemAvatar>
+                                            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                                                {value.user.name.slice(0, 1)}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemContent sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <Typography level="title-sm">{value.user.name}</Typography>
+                                            <Typography level="body-sm">
+                                                {value.comment}
+                                            </Typography>
+                                        </div>
+                                        </ListItemContent>
+                                        {authUser.id == value.user.id &&
+                                            <IconButton onClick={() => deleteComment(value)}>
+                                                <ListItemIcon sx={{ justifyContent: 'center' }}>
+                                                    <DeleteIcon />
+                                                </ListItemIcon>
+                                            </IconButton>
+                                        }
+                                    </ListItem>
+                                    <Divider variant="inset" component="li" sx={{ mb: 1 }}/>
+                                </React.Fragment>
+                            )
+                        })
+                        :
+                        <Typography>コメントはありません</Typography>
+                    }
                 
-                    </List>                   
+                 </List>                   
                 {/* コメントここまで */}
 
                 {/* コメント入力欄 */}
-                <Box sx={{ mt: 1 }}>
-                    <TextField fullWidth={true} id="outlined-basic" label="コメント" variant="outlined" />
-                    <Button sx={{
-                        mt: 2,
-                        width: 100,
-                        "@media screen and (max-width:600px)": {
-                            width: '100%',
-                        },
-                    }} variant="contained">
-                        送信
-                    </Button>
-                </Box>
+                <form onSubmit={postComment}>
+                    <Box sx={{ mt: 1 }}>
+                        <TextField 
+                            fullWidth={true} 
+                            id="outlined-basic" 
+                            label="コメント" 
+                            variant="outlined" 
+                            name="comment"
+                            value={comment}
+                            onChange={e => setComment(e.target.value)}
+                        />
+                        <Button
+                            type='submit'
+                            disabled={comment.length == 0}
+                            sx={{
+                            mt: 2,
+                            width: 100,
+                            "@media screen and (max-width:600px)": {
+                                width: '100%',
+                            },
+                            }} 
+                            variant="contained"
+                        >
+                            送信
+                        </Button>
+                    </Box>
+                </form>
                 {/* コメント入力欄ここまで */}
             </CardContent>
             </Collapse>

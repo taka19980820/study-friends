@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Chip, TextField, Box } from '@mui/material';
 import Autocomplete from '@mui/lab/Autocomplete';
+import * as RestAccess from '../../../utils/RestAccess';
 
 function TagInput({ onAdd, suggestions }) {
   const [inputValue, setInputValue] = useState('')
@@ -65,20 +66,34 @@ function TagsDisplay({ tags, onRemove }) {
   );
 }
 
-export default function TagManager({ suggestions = [] }) {
-  const [tags, setTags] = useState([]);
+export default function TagManager({ callBack, tagSet = [] }) {
+  const [ tags, setTags ] = useState(tagSet);
+  const [ suggestions, setSuggestions ] = useState([]);
+
+  React.useEffect(() => {
+    const getTags = async () => {
+      const response = await RestAccess.get('/tags');
+      if(response.status === 200) {
+        const tagSuggestions = response.data.map((tag) => tag.tag_name);
+        setSuggestions(tagSuggestions);
+      }
+    }
+    getTags();
+  }, [])
 
   const handleAddTag = (tag) => {
     if (tags.indexOf(tag) === -1) {
-      setTags([...tags, tag]);
+      const newTags = [...tags, tag];
+      callBack(newTags);
+      setTags(newTags);
+      // setTags([...tags, tag]);
     }
   };
-
   const handleRemoveTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    const newTags = tags.filter(tag => tag !== tagToRemove);
+    callBack(newTags);
+    setTags(newTags);
   };
-
-  
 
   return (
     <div>

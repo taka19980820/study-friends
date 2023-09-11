@@ -1,14 +1,14 @@
-// Main.js
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
 import Typography from '@mui/joy/Typography';
-import Box from '@mui/material/Box';
 import { useRouter } from 'next/router';
-import { useRegisterInput } from '../../../context/RegisterInputContext';
+import { useContext } from 'react';
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import * as RestAccess from '../../../utils/RestAccess';
+import { useSnackbar } from '../../../context/SnackbarContext';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
 
 
 const drawerWidth = 240;
@@ -40,56 +40,34 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
-
-//タグ選択用スタイル
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
-
 
 export default function Login({ open }) {
-    //登録ボタン押下
     const router = useRouter();
-    // const { registerInput, setRegisterInput } = useRegisterInput();
-    // const [userInput, setUserInput] = useState();
-    const handleSubmit = (event) => {
-      const userInput = {
-        email: event.target.email.value,
-        password: event.target.password.value
+    const { setAuthUser } = useContext(AuthContext);
+    const { showSnackbar } = useSnackbar();
+    const { register, handleSubmit, formState: { errors } } = useForm();
+
+    const onSubmit = async (data) => {
+      // CSRFトークンを取得
+      await RestAccess.get('/sanctum/csrf-cookie');
+
+      // ログイン処理
+      const response = await RestAccess.post('/login', data, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 200) {
+        const { data: user } = response;
+        setAuthUser(user);
+        showSnackbar('ログインしました');
+      } else if (response.status === 422) {
+        showSnackbar('認証に失敗しました', 'error');
+      } else {
+        showSnackbar('ログインに失敗しました', 'error');
       }
-      event.preventDefault();
-    //   setRegisterInput({
-    //       name: event.target.name.value,
-    //       email: event.target.email.value,
-    //       password: event.target.password.value,
-    //   })
-      console.log('login完了:', userInput);
-      router.push('/');
+  
     }
     
 
@@ -99,27 +77,33 @@ export default function Login({ open }) {
         <Card>
             <CardHeader title="ログイン" />
             <CardContent>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
                         <Typography>メールアドレス</Typography>
                         <TextField
                           variant="outlined"
                           margin="normal"
-                          required
                           fullWidth
-                          id="email"
-                          name="email"
-                          autoComplete="email"
+                          {...register("email", {
+                            required: "メールアドレスは必須です。",
+                            pattern: {
+                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+                              message: "無効なメールアドレスです。"
+                            }
+                          })}
+                          error={Boolean(errors.email)}
+                          helperText={errors.email && errors.email.message}
                         />
                         <Typography>パスワード</Typography>
                         <TextField
                           variant="outlined"
                           margin="normal"
-                          required
-                          fullWidth
-                          name="password"
                           type="password"
-                          id="password"
-                          autoComplete="current-password"
+                          fullWidth
+                          {...register("password", {
+                            required: "パスワードは必須です。"
+                          })}
+                          error={Boolean(errors.password)}
+                          helperText={errors.password && errors.password.message}
                         />
                         <Button 
                             type='submit'
@@ -134,6 +118,8 @@ export default function Login({ open }) {
                           ログイン
                         </Button>
                     </form>
+                    <Button sx={{fontWeight: 'bold', mt: 2}}><Link href="/register">新規登録はこちら</Link></Button>
+                    
             </CardContent>
         </Card>
     </MainContainer>

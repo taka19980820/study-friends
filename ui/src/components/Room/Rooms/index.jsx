@@ -1,68 +1,40 @@
-// Main.js
 import React from 'react';
 import { styled } from '@mui/material/styles';
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
 import Collapse from '@mui/material/Collapse';
 import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
 import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
-import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
-import ListItem from '@mui/joy/ListItem';
-import Divider from '@mui/material/Divider';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
-import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import IconButton from '@mui/joy/IconButton';
-
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-
+import List from '@mui/joy/List';
+import ListItem from '@mui/joy/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-
-
-import { Person, Circle } from '@mui/icons-material';
-import ImageIcon from '@mui/icons-material/Image';
-import WorkIcon from '@mui/icons-material/Work';
-import BeachAccessIcon from '@mui/icons-material/BeachAccess';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 import PersonIcon from '@mui/icons-material/Person';
 import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
-
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
-
 import Link from 'next/link'
-
 import SearchBar from '../../Search/KeyWordSearch';
+import { useEffect, useState, useContext } from 'react';
+import * as RestAccess from '../../../utils/RestAccess';
+import { useSnackbar  } from '../../../context/SnackbarContext';
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import * as dateTimeHandler from '../../../utils/dateTimeHandler';
+import { useRouter } from 'next/router';
+import TagManager from '../../Tag/TagManager';
 
 const drawerWidth = 240;
 
@@ -93,32 +65,19 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
-
 
 export default function Rooms({ open }) {
     const [roomDetailOpen, setRoomDetailOpen] = React.useState(false);
+    const router = useRouter();
     const [roomDetailValues, setDetailValues] = React.useState({
-        roomId: null,
-        roomName: '',
-        numMember: null,
+        id: null,
+        user_id: null,
+        room_name: '',
+        // numMember: [],
         description: '',
-        member: [],
-        category: '',
+        users: [],
         tags: [],
-        modified: '',
-        ageLimit: null,
-        sexLimit: null,
-        numLimit: null,
+        updated_at: "",
     });
     const handleRoomDetailOpen = (newValue) => {
         setDetailValues({...roomDetailValues, ...newValue})
@@ -141,129 +100,55 @@ export default function Rooms({ open }) {
     const handleTagSelected = (tagId) => {
         setTagSelected(tagId);
     };
-    const tags = {
-        'プログラミング': [
-            { tagId: 1, tagName: 'PHP'},
-            { tagId: 2, tagName: 'Laravel'},
-            { tagId: 3, tagName: 'Java'},
-        ],
-        'インフラ': [
-            { tagId: 4, tagName: 'Linux'},
-            { tagId: 5, tagName: 'CentOS'},
 
-        ],
-        '資格取得': [
-            { tagId: 6, tagName: 'LPIC'},
-            { tagId: 7, tagName: 'CCNA'},
-        ],
-    }
-    const rooms = [
-        {
-            roomId: 1,
-            roomName: 'PHP勉強部屋',
-            numMember: 100,
-            description: 'PHPの勉強部屋です。みんなでWeb開発のテクニシャンになりましょう。',
-            member: [
-                { 
-                    userId: 1,
-                    userName: '堀越大永',
-                },
-                { 
-                    userId: 2,
-                    userName: '佐々木',
-                },
-                { 
-                    userId: 3,
-                    userName: 'ブライアン',
-                },
-            ],
-            category: 'プログラミング',
-            tags: [
-                {
-                    tagId: 1,
-                    tagName: 'PHP',
-                    tagUrl: 'link'
-                },
-                {
-                    tagId: 2,
-                    tagName: 'Laravel',
-                    tagUrl: 'link'
-                },
-            ],
-            modified: '2023年8月31日 13時41分',
-            ageLimit: null,
-            sexLimit: null,
-            numLimit: null,
-        },
-        {
-            roomId: 2,
-            roomName: 'LPIC勉強',
-            numMember: 10,
-            description: 'PHPの勉強部屋です。みんなでWeb開発のテクニシャンになりましょう。',
-            member: [
-                { 
-                    userId: 2,
-                    userName: '堀越大永',
-                },
-                { 
-                    userId: 5,
-                    userName: '神風',
-                },
-            ],
-            category: '資格取得',
-            tags: [
-                {
-                    tagId: 1,
-                    tagName: 'Linux',
-                    tagUrl: 'link'
-                },
-            ],
-            modified: '2023年8月31日 13時41分',
-            ageLimit: null,
-            sexLimit: null,
-            numLimit: null,
-        },
-        {
-            roomId: 3,
-            roomName: 'MySQLを学ぼうの会',
-            numMember: 20,
-            description: 'MySQLの勉強部屋です。',
-            member: [
-                { 
-                    userId: 1,
-                    userName: '堀越大永',
-                },
-                { 
-                    userId: 2,
-                    userName: '佐々木',
-                },
-                { 
-                    userId: 3,
-                    userName: 'ブライアン',
-                },
-            ],
-            category: 'データベース',
-            tags: [
-                {
-                    tagId: 11,
-                    tagName: 'MySQL',
-                    tagUrl: 'link'
-                },
-                {
-                    tagId: 335,
-                    tagName: 'PHP',
-                    tagUrl: 'link'
-                },
-            ],
-            modified: '2023年8月31日 13時41分',
-            ageLimit: null,
-            sexLimit: null,
-            numLimit: null,
-        },
-
-    ];
+    const { authUser } = useContext(AuthContext);
+    const [ rooms, setRooms ] = useState([]);
+    const { showSnackbar } = useSnackbar();
+    useEffect(() => {
+        const getRooms = async () => {
+            const response = await RestAccess.get('/rooms');
+            if(response.status == 200) {
+                setRooms([...response.data]);
+            } else {
+                showSnackbar('勉強ルームの取得に失敗しました', 'error')
+            }
+        }
+        getRooms();
+    }, [])
 
     const searchData = ['Apple', 'Banana', 'Cherry', 'Date', 'Fig', 'Grape', 'Honeydew', 'PHP', 'Laravel', 'Python'];
+
+    const joinRoom = async (roomId) => {
+        const response = await RestAccess.post('/rooms/' + roomId + '/join');
+        if(response.status == 200) {
+            showSnackbar('ルームに参加しました')
+            // router.push('/rooms/' + roomId);
+            router.push({ pathname: "/rooms/" + roomId, query: { id: roomId } }, "/rooms/" + roomId);
+        } else {
+            showSnackbar('ルームに参加できませんでした', 'error');
+        }
+    }
+
+    const searchRoom = async (tags) => {
+        let response = null;
+        if(tags.length > 0) {
+            response = await RestAccess.get('/rooms', {
+                params: {
+                    tags: tags.join(",")
+                }
+            })
+        } else {
+            response = await RestAccess.get('/rooms')
+        }
+        
+        if(response.status == 200) {
+            setRooms(response.data);
+        } else {
+            showSnackbar('勉強ルームの取得に失敗しました', 'error')
+        }
+    }
+
+    
 
   return  (
     <MainContainer open={open}>
@@ -274,7 +159,8 @@ export default function Rooms({ open }) {
             <CardContent>                
                 <Box>
                     {/* <TextField sx={{mb: 2}} fullWidth={true} id="outlined-basic" label="キーワードで検索" variant="outlined" /> */}
-                    <SearchBar data={searchData} />
+                    {/* <SearchBar data={searchData} /> */}
+                        <TagManager callBack={searchRoom}/>
                     {/* <List>
                     {Object.keys(tags).map((category) => {
                         return (
@@ -297,18 +183,18 @@ export default function Rooms({ open }) {
         <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
             {rooms.map((value) => {
                 return (
-                    <ListItem key={value.roomId} onClick={() => handleRoomDetailOpen(value)} sx={{ border: '1px solid', borderColor: '#C0C0C0', mb: 3, padding: 0 }}>
+                    <ListItem key={value.id} onClick={() => handleRoomDetailOpen(value)} sx={{ border: '1px solid', borderColor: '#C0C0C0', mb: 3, padding: 0 }}>
                         <ListItemButton>
                             <ListItemAvatar>
                                 <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    {value.roomName.slice(0,1)}
+                                    {value.room_name.slice(0,1)}
                                 </Avatar>
                             </ListItemAvatar>     
                             <Box>
-                                <Typography>{value.roomName}(参加中)</Typography>
+                                <Typography>{value.is_join ? value.room_name + '(参加中)' : value.room_name}</Typography>
                                 <Stack direction="row">
                                     <PersonIcon fontSize="small"/>
-                                    <span>{value.numMember}人</span> 
+                                    <span>{value.users.length}人</span> 
                                 </Stack>
                             </Box>
                         </ListItemButton>
@@ -324,34 +210,33 @@ export default function Rooms({ open }) {
             aria-describedby="alert-dialog-description"
             fullWidth
         >
-            <DialogTitle sx={{ mb: 2, textAlign: 'center', borderBottom: '1px solid', borderColor: '#C0C0C0', fontWeight: 'bold' }}>{roomDetailValues.roomName}</DialogTitle>
+            <DialogTitle sx={{ mb: 2, textAlign: 'center', borderBottom: '1px solid', borderColor: '#C0C0C0', fontWeight: 'bold' }}>{roomDetailValues.room_name}</DialogTitle>
             <DialogContent>
-                <Typography sx={{ mb: 1, color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>参加者 {roomDetailValues.numMember}人</Typography>
+                <Typography sx={{ mb: 1, color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>参加者 {roomDetailValues.users.length}人</Typography>
                 <Box display="flex" flexWrap="wrap" sx={{ pb: 2, gap: '3px' }}>
-                    {roomDetailValues.member.map((value) => (
-                        <ListItemAvatar key={value.userId}>
+                    {roomDetailValues.users.map((user) => (
+                        <ListItemAvatar key={user.id}>
                             <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                {value.userName.slice(0, 1)}
+                                {user.name.slice(0, 1)}
                             </Avatar>
                         </ListItemAvatar>
                     ))}
                 </Box>
                 <Typography sx={{ color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>ルーム説明</Typography>
-                <Typography sx={{ color: 'red' }}>[{roomDetailValues.category}]</Typography>
                 <DialogContentText sx={{ mb: 1 }}>
                     {roomDetailValues.description}
                 </DialogContentText>
                 <Typography sx={{ mb: 1, color: 'black', fontSize: '1.2rem', fontWeight: 'bold' }}>タグ</Typography>
                 <Box display="flex" flexWrap="wrap" sx={{ pb: 2, gap: '3px' }}>
-                    {roomDetailValues.tags.map((value) => (
-                        <Chip key={value.tagId} label={value.tagName} color="primary" />
+                    {roomDetailValues.tags.map((tag) => (
+                        <Chip key={tag.id} label={tag.tag_name} color="primary" />
                     ))}
                 </Box>
                 <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>最終更新</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{roomDetailValues.modified}</Grid>
+                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{dateTimeHandler.formatDate(roomDetailValues.updated_at, 'YYYY年MM月DD日 HH時MM分SS秒')}</Grid>
                 </Grid>
-                <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
+                {/* <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>年齢制限</Grid>
                     <Grid item xs={8} sx={{ textAlign: 'right' }}>{roomDetailValues.ageLimit != null ? roomDetailValues.ageLimit + '以上' : '制限なし'}</Grid>
                 </Grid>
@@ -362,21 +247,33 @@ export default function Rooms({ open }) {
                 <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
                     <Grid item xs={4}>人数制限</Grid>
                     <Grid item xs={8} sx={{ textAlign: 'right' }}>{roomDetailValues.numList != null ? roomDetailValues.numLimit + 'まで' : '制限なし'}</Grid>
-                </Grid>
+                </Grid> */}
             </DialogContent>
 
             <DialogActions>
             <Button onClick={handleRoomDetailClose}>キャンセル</Button>
-            <Button onClick={handleRoomDetailClose} autoFocus>
-                このルームに参加する
-            </Button>
+            {roomDetailValues.is_join ? 
+                <Button>
+                    <Link href={{pathname: "/rooms/" + roomDetailValues.id, query: {id: roomDetailValues.id, isJoin: roomDetailValues.is_join}}} as={"/rooms/" + roomDetailValues.id}>
+                        入室する
+                    </Link>
+                </Button>
+                :
+                <Button onClick={() => joinRoom(roomDetailValues.id)}>
+                    このルームに参加する
+                </Button>
+            }
             {/* 管理者の場合 */}
-            <Button onClick={handleRoomDetailClose} autoFocus>
-                ルーム管理
-            </Button>
+            {roomDetailValues.user_id == authUser.id && 
+                    <Button onClick={handleRoomDetailClose} autoFocus>
+                        <Link href={{pathname: "/rooms/manage", query: {id: roomDetailValues.id}}} as="/rooms/manage">
+                            ルーム管理
+                        </Link>
+                    </Button>
+            }
             </DialogActions>
         </Dialog>
-        <Link href="/makeroom">
+        <Link href="/rooms/register">
             <Fab 
                 sx={{ 
                     position: 'fixed',

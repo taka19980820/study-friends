@@ -2,70 +2,25 @@
 import React from 'react';
 import { useTheme } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
-import { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import InputLabel from '@mui/material/InputLabel';
-import Input from '@mui/material/Input';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import Divider from '@mui/material/Divider';
-
-
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
-
-import CardMedia from '@mui/material/CardMedia';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
-import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
-import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
-import ListItem from '@mui/joy/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
-import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import IconButton from '@mui/joy/IconButton';
-
-
-import Menu from '@mui/material/Menu';
-
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { useRouter } from 'next/router';
+import { useContext } from 'react';
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import * as RestAccess from '../../../utils/RestAccess';
+import { useSnackbar } from '../../../context/SnackbarContext';
+import TagManager from '../../Tag/TagManager';
 
 
-import {FormContainer,  TextFieldElement, DateTimePickerElement} from 'react-hook-form-mui'
 
 import Stack from '@mui/material/Stack';
 
-
-// import MainContent from './MainContent'; // Create a separate component for Main content
 
 const drawerWidth = 240;
 
@@ -96,17 +51,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
-
 //タグ選択用スタイル
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -118,284 +62,191 @@ const MenuProps = {
     },
   },
 };
-function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
 
-
-export default function ManageRoom({ open }) {
-    const {
-        control,
-        handleSubmit,
-      } = useForm();
-    
-      const onSubmit = (data) => {
-        console.log(data);
-    };
-    //勉強日時
-    const [studyDateTime, setStudyDateTime] = React.useState(null);
-    //カテゴリ選択
-    const [category, setCategory] = React.useState('プログラミング');
-    const handleSetCategory = (event) => {
-        setCategory(event.target.value);
-    };
-    const categories = [
-        // { categoryId: 1, categoryName: '教材なし' },
-        { categoryId: 2, categoryName: 'プログラミング' },
-        { categoryId: 3, categoryName: 'インフラ' },
-        { categoryId: 4, categoryName: '資格取得' },
-    ]
+export default function ManageRoom({ open, roomId }) {
     //タグ選択
     const theme = useTheme();
-    const [tags, setTags] = React.useState([]);
-  
-    const handleSetTags = (event) => {
-      const {
-        target: { value },
-      } = event;
-      setTags(
-        // On autofill we get a stringified value.
-        typeof value === 'string' ? value.split(',') : value,
-      );
-    };
-    const tag = {
-        // '教材なし': [],
-        'プログラミング': [
-            { tagId: 1, tagName: 'PHP'},
-            { tagId: 2, tagName: 'Laravel'},
-            { tagId: 3, tagName: 'Java'},
-        ],
-        'インフラ': [
-            { tagId: 4, tagName: 'Linux'},
-            { tagId: 5, tagName: 'CentOS'},
+    const { authUser } = useContext(AuthContext);
+    const { showSnackbar } = useSnackbar();    
+    const [ display, setDisplay ] = React.useState(false);
+    const [ formData, setFormData ] = React.useState({
+        room_name: '',
+        description: '',
+        tags: []
+    })
+    const router = useRouter();
 
-        ],
-        '資格取得': [
-            { tagId: 6, tagName: 'LPIC'},
-            { tagId: 7, tagName: 'CCNA'},
-        ],
-    }
-    //年齢制限設定
-    const [ageStart, setAgeStart] = React.useState('noLimit');
-    const [ageEnd, setAgeEnd] = React.useState('noLimit');
-    const handleSetAgeStart = (event) => {
-        setAgeStart(event.target.value)
-    }
-    const handleSetAgeEnd = (event) => {
-        setAgeEnd(event.target.value)
-    }
-    const ageLimitSetttingStart = [
-        {   
-            id: 1,
-            age: 'noLimit',
-            display: '制限なし',
-        },
-        {
-            id: 2,
-            age: '10s',
-            display: '10代',
-        },
-        {
-            id: 3,
-            age: '20s',
-            display: '20代',
+    //削除確認ダイアログ
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+
+    const handleDialogOpen = () => {
+        setDialogOpen(true);
+    };
+    const handleDialogClose = () => {
+        setDialogOpen(false);
+    };
+
+    //ルーム削除
+    const deleteRoom = async () => {
+        const response = await RestAccess.del('/rooms/' + roomId + '/delete');
+        if(response.status === 200) {
+            showSnackbar('ルームを削除しました');
+            router.push('/rooms');
+        } else {
+            showSnackbar('エラーが発生しました', 'error');
         }
-    ]
-    const ageLimitSetttingEnd = [
-        {   
-            id: 1,
-            age: 'noLimit',
-            display: '制限なし',
-        },
-        {
-            id: 2,
-            age: '20s',
-            display: '20代',
-        },
-        {
-            id: 3,
-            age: '30s',
-            display: '30代',
-        },
-        {
-            id: 4,
-            age: '40s',
-            display: '40代',
-        },
-        {
-            id: 5,
-            age: '50s',
-            display: '50代',
-        },
-        {
-            id: 6,
-            age: '60s',
-            display: '60代',
-        },
-    ]
-    const [numLimitOfMember, setNumLimitOfMember] = React.useState(51);
-    const handleNumLimitOfMember = (event) => {
-        setNumLimitOfMember(event.target.value)
     }
+    
+    const renderDialog = (
+        <Dialog
+            open={dialogOpen}
+            onClose={handleDialogClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+                本当に削除しますか？
+            </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleDialogClose}>キャンセル</Button>
+            <Button onClick={deleteRoom} autoFocus>
+                削除
+            </Button>
+            </DialogActions>
+        </Dialog>
+    );
+
+    React.useEffect(() => {
+        const getRoomData = async () => {
+            const room = await RestAccess.get('/rooms/' + roomId);
+            if(room.status === 200) {
+                const roomData = room.data.room;
+                const roomTags = roomData.tags.map((tag) => tag.tag_name);
+                setFormData({
+                    room_name: roomData.room_name,
+                    description: roomData.description,
+                    tags: roomTags
+                })
+                setDisplay(true);
+            } else {
+                showSnackbar('ルーム情報の取得に失敗しました', 'error')
+                router.push('/rooms');
+            }
+        }
+        getRoomData();
+    }, [])
+
+    //タグ選択コールバック
+    const handleSetTags = (newTags) => {
+        setFormData({
+          ...formData,
+          tags: newTags
+        });
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const response = await RestAccess.put('/rooms/' + roomId + '/edit',  formData, {
+          headers: {
+          'Content-Type': 'application/json'
+        }})
+        if(response.status === 200) {
+          showSnackbar('ルーム情報を更新しました', 'success');
+          router.back();
+        } else {
+          showSnackbar('ルーム情報の更新に失敗しました', 'error');
+        }
+  
+      }
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    };
+  
+    
+    
+    
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
+        { display &&
+        <>
         <Card>
             <CardHeader title="ルーム管理" />
             <CardContent>
-                    <Box component="form">
-                        <Typography>ルーム名</Typography>
+                    <form onSubmit={handleSubmit}>
+                        <Box>
+                            <Typography>ルーム名</Typography>
                             <TextField
+                                required
+                                id="room_name"
+                                name="room_name"
+                                value={formData.room_name}
+                                onChange={handleChange}
                                 variant="outlined"
                                 fullWidth
                                 sx={{ mb: 2 }}
-                             />
-                        <Typography>参加者 100人</Typography>
-                        <Box display="flex" flexWrap="wrap" sx={{ pb: 2, gap: '3px' }}>
-                            {/* {roomDetailValues.member.map((value) => (
-                                <ListItemAvatar key={value.userId}>
-                                    <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                        {value.userName.slice(0, 1)}
-                                    </Avatar>
-                                </ListItemAvatar>
-                            ))} */}
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    堀
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    松
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    分
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemAvatar>
-                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                    足
-                                </Avatar>
-                            </ListItemAvatar>
+                            />
+                            <Typography>タグ選択</Typography>
+                            <TagManager 
+                                callBack={handleSetTags}
+                                tagSet={formData.tags}
+                            />
+                            <Typography>ルーム説明</Typography>
+                            <TextField
+                                required
+                                multiline
+                                rows={3}
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                multiline
+                                rows={3}
+                                variant="outlined"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
                         </Box>
-                        <Typography>カテゴリ</Typography>
-                        <Select
-                            value={category}
-                            onChange={handleSetCategory}
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        >
-                            {categories.map((value) => (
-                                <MenuItem key={value.categoryId} value={value.categoryName}>{value.categoryName}</MenuItem>
-                            ))}
-                        </Select>
-                        <Typography>タグ選択</Typography>
-                        <Select
-                            multiple
-                            value={tags}
-                            onChange={handleSetTags}
-                            MenuProps={MenuProps}
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        >
-                            {tag[category].map((value) => {
-                                return (
-                                <MenuItem 
-                                    key={value.tagId} 
-                                    value={value.tagName} 
-                                    style={getStyles(value, tags, theme)}
-                                >
-                                    {value.tagName}
-                                </MenuItem>
-                            )})}
-                        </Select>
-                        <Typography>ルーム説明</Typography>
-                        <TextField
-                            multiline
-                            rows={3}
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                        <Typography>年齢制限</Typography>
-                        <Stack direction="row" sx={{ mb: 2 }}>
-                            <Select
-                                value={ageStart}
-                                onChange={handleSetAgeStart}
-                            >
-                                {ageLimitSetttingStart.map((value) => {
-                                    return(
-                                    <MenuItem 
-                                        key={value.id} 
-                                        value={value.age}
-                                    >
-                                        {value.display}
-                                    </MenuItem>
-                                )})}
-                            </Select>
-                            <Typography> 〜 </Typography>
-                            <Select
-                                value={ageEnd}
-                                onChange={handleSetAgeEnd}
-                            >
-                                {ageLimitSetttingEnd.map((value) => (
-                                    <MenuItem 
-                                        key={value.id} 
-                                        value={value.age}
-                                    >
-                                        {value.display}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </Stack>
-                        <Typography>人数制限</Typography>
-                        <Select
-                            value={numLimitOfMember}
-                            onChange={handleNumLimitOfMember}
-                            sx={{ mb: 2 }}
-                        >
-                            {[...Array(50)].map((_, i) => (
-                                <MenuItem 
-                                    key={i+2} 
-                                    value={i+2} 
-                                >
-                                    {i+2 === 51 ? '制限なし' : i+2}
-                                </MenuItem> 
-                            ))}
-                        </Select>
-                        
-                    </Box>
-                    <Stack direction="row" spacing={2}>
-                        <Button sx={{
-                                width: '100%',
-                                "@media screen and (max-width:600px)": {
+                        <Stack direction="row" spacing={2}>
+                            <Button 
+                                sx={{
                                     width: '100%',
-                                },
-                            }} 
-                            variant="contained"
-                            color="error"
-                        >
-                                ルーム削除
-                        </Button>
-                        <Button sx={{
-                                width: '100%',
-                                "@media screen and (max-width:600px)": {
+                                    "@media screen and (max-width:600px)": {
+                                        width: '100%',
+                                    },
+                                }} 
+                                variant="contained"
+                                color="error"
+                                onClick={handleDialogOpen}
+                            >
+                                    ルーム削除
+                            </Button>
+                            <Button 
+                                sx={{
                                     width: '100%',
-                                },
-                            }} variant="contained">
+                                    "@media screen and (max-width:600px)": {
+                                        width: '100%',
+                                    },
+                                }} 
+                                variant="contained"
+                                type="submit"
+                            >
                                 更新する
-                        </Button>                      
-                    </Stack>
-                   
+                            </Button>                      
+                        </Stack>
+                    </form>
             </CardContent>
         </Card>
+        {renderDialog}
+        </>
+        }       
     </MainContainer>
     )
 };

@@ -2,74 +2,17 @@
 import React from 'react';
 import { useTheme } from '@mui/material/styles';
 import { styled } from '@mui/material/styles';
-import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import InputLabel from '@mui/material/InputLabel';
-import Input from '@mui/material/Input';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import Divider from '@mui/material/Divider';
-
-
-// import Typography from '@mui/material/Typography';
+import { Card, CardHeader, CardContent, TextField, Button, Select, MenuItem } from '@mui/material';
 import Typography from '@mui/joy/Typography';
-
-import CardMedia from '@mui/material/CardMedia';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
-import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
-import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
-import ListItem from '@mui/joy/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
-import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import IconButton from '@mui/joy/IconButton';
-
-
-import Menu from '@mui/material/Menu';
-
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
-
-import {FormContainer,  TextFieldElement, DateTimePickerElement} from 'react-hook-form-mui'
-
-import Stack from '@mui/material/Stack';
-
-import Autocomplete from '@mui/material/Autocomplete';
-
 import TagManager from '../../Tag/TagManager';
-
-
-// import MainContent from './MainContent'; // Create a separate component for Main content
+import * as RestAccess from '../../../utils/RestAccess';
+import { useContext } from 'react';
+import { useRouter } from 'next/router'
+import { AuthContext } from '../../../context/Auth/AuthContext';
+import CustomSnackbar from '../../SnackBar';
+import { useSnackbar } from '../../../context/SnackbarContext';
 
 const drawerWidth = 240;
 
@@ -100,17 +43,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     justifyContent: 'flex-end',
   })); 
 
-//   const ExpandMore = styled((props) => {
-//     const { expand, ...other } = props;
-//     return <IconButton {...other} />;
-//   })(({ theme, expand }) => ({
-//     transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-//     marginLeft: 'auto',
-//     transition: theme.transitions.create('transform', {
-//       duration: theme.transitions.duration.shortest,
-//     }),
-//   }));
-
 //タグ選択用スタイル
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -133,120 +65,208 @@ function getStyles(name, personName, theme) {
 
 
 export default function AddMaterial({ open }) {
-    const {
-        control,
-        handleSubmit,
-      } = useForm();
-    
-      const onSubmit = (data) => {
-        console.log(data);
+    const router = useRouter();
+    const { authUser } = useContext(AuthContext);
+    const { showSnackbar } = useSnackbar();    
+    const [ tagSuggestions, setTagSuggestions ] = React.useState([]);
+    const [ categories, setCategories ] = React.useState([]);
+    const [ category, setCategory ] = React.useState('');
+    const [ display, setDisplay ] = React.useState(false);
+
+    const [ formData, setFormData ] = React.useState({
+        material_name : "",
+        description: "",
+        author: "",
+        publisher: "",
+        pages: "",
+        url: "",
+        category_id: 1,
+        tags: []
+    })
+
+    const [ snackbar, setSnackbar ] = React.useState({ open: false, message: '', severity: 'success' });
+
+    const theme = useTheme();
+  
+    const handleSetCategories = (event) => {
+      setCategory(event.target.value);
+      setFormData((prev) => ({ ...prev, category_id: event.target.value}));
     };
 
-    //タグ選択
-    const theme = useTheme();
-    const [tags, setTags] = React.useState([]);
-  
-    const handleSetTags = (event) => {
-      const {
-        target: { value },
-      } = event;
-      setTags(
-        // On autofill we get a stringified value.
-        typeof value === 'string' ? value.split(',') : value,
-      );
+    const handleCloseSnackbar = () => {
+      setSnackbar({ ...snackbar, open: false });
     };
-    const tagSet = [
-        { tagId: 1, tagName: 'PHP'},
-        { tagId: 2, tagName: 'Laravel'},
-        { tagId: 3, tagName: 'Java'},
-        { tagId: 4, tagName: 'Linux'},
-        { tagId: 5, tagName: 'CentOS'},
-        { tagId: 6, tagName: 'LPIC'},
-        { tagId: 7, tagName: 'CCNA'},
-    ]
 
     React.useEffect(() => {
-        setTags([...tagSet])
+        const getTagData = async () => {
+            const tags = await RestAccess.get('/tags');
+            const categories = await RestAccess.get('/users/' + authUser.id + '/categories');
+            if(tags.status === 200 && categories.status === 200) {
+                const tagSets = tags.data;
+                const tagSuggestions = tagSets.map((tag) => tag.tag_name);
+                // setTags(tagSets);
+                setCategories(categories.data);
+                setCategory(categories)
+                setTagSuggestions(tagSuggestions);
+                setDisplay(true);
+            }
+        }
+        getTagData();
     }, [])
-    
+
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      const response = await RestAccess.post('/materials', formData, {
+        headers: {
+        'Content-Type': 'application/json'
+      }})
+      if(response.status === 200) {
+        showSnackbar('教材を登録しました', 'success');
+        router.push('/materials');
+      } else {
+        showSnackbar('教材を登録できませんでした', 'error');
+      }
+
+    }
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    };
+
+    //タグ選択コールバック
+    const handleSetTags = (newTags) => {
+      setFormData({
+        ...formData,
+        tags: newTags
+      });
+  };
 
   return  (
+    
     <MainContainer open={open}>
         <DrawerHeader />
-        <Card>
-            <CardHeader title="教材登録" />
-            <CardContent>
-                    <Box component="form">
-                        <Typography>教材名</Typography>
+        {display &&
+          <>
+            <Card>
+                <CardHeader title="教材登録" />
+                <CardContent>
+                    <form onSubmit={handleSubmit}>
+                        <Box>
+                            <Typography>教材名</Typography>
+                                <TextField
+                                    variant="outlined"
+                                    fullWidth
+                                    required
+                                    id="material_name"
+                                    name="material_name"
+                                    value={formData.material_name}
+                                    onChange={handleChange}
+                                    sx={{ mb: 2 }}
+                                />   
+                            <Typography>カテゴリ選択</Typography>
+                            <Select
+                                value={formData.category_id}
+                                onChange={handleSetCategories}
+                                MenuProps={MenuProps}
+                                fullWidth
+                            >
+                                {categories.map((value) => {
+                                    return (
+                                    <MenuItem 
+                                        key={value.id} 
+                                        value={value.id}
+                                        style={getStyles(value, categories, theme)}
+                                    >
+                                        {value.category_name}
+                                    </MenuItem>
+                                )})}
+                            </Select>
+                            <Typography sx={{ mt: 2 }}>タグ(複数選択可)</Typography>
+                            <TagManager 
+                              callBack={handleSetTags}
+                              tags={formData.tags}
+                            />
+                            <Typography sx={{ mt: 2 }}>教材説明</Typography>
+                            <TextField
+                                multiline
+                                rows={3}
+                                variant="outlined"
+                                fullWidth
+                                required
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                sx={{ mb: 2 }}
+                            />
+                            <Typography>著者名(任意)</Typography>
                             <TextField
                                 variant="outlined"
                                 fullWidth
+                                id="author"
+                                name="author"
+                                value={formData.author}
+                                onChange={handleChange}
                                 sx={{ mb: 2 }}
-                             />                        
-                        <Typography>タグ(複数選択可)</Typography>
-                        <TagManager suggestions={['React', 'MUI', 'JavaScript', 'PHP']}/>
-                        {/* <Select
-                            multiple
-                            value={tags}
-                            onChange={handleSetTags}
-                            MenuProps={MenuProps}
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        >
-                            {tags.map((value) => {
-                                return (
-                                <MenuItem 
-                                    key={value.tagId} 
-                                    value={value.tagName} 
-                                    style={getStyles(value, tags, theme)}
-                                >
-                                    {value.tagName}
-                                </MenuItem>
-                            )})} */}
-                        {/* </Select> */}
-                        <Typography>教材説明</Typography>
-                        <TextField
-                            multiline
-                            rows={3}
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                        <Typography>著者名(任意)</Typography>
-                        <TextField
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                        <Typography>ページ数(任意)</Typography>
-                        <TextField
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                        <Typography>出版社(任意)</Typography>
-                        <TextField
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                        <Typography>URL(任意)</Typography>
-                        <TextField
-                            variant="outlined"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                        />
-                    </Box>
-                    <Button sx={{
-                            width: '100%',
-                            "@media screen and (max-width:600px)": {
+                            />
+                            <Typography>ページ数(任意)</Typography>
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                id="pages"
+                                name="pages"
+                                value={formData.pages}
+                                onChange={handleChange}
+                                sx={{ mb: 2 }}
+                            />
+                            <Typography>出版社(任意)</Typography>
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                id="publisher"
+                                name="publisher"
+                                value={formData.publisher}
+                                onChange={handleChange}
+                                sx={{ mb: 2 }}
+                            />
+                            <Typography>URL(任意)</Typography>
+                            <TextField
+                                variant="outlined"
+                                fullWidth
+                                id="url"
+                                name="url"
+                                value={formData.url}
+                                onChange={handleChange}
+                                sx={{ mb: 2 }}
+                            />
+                        </Box>
+                        <Button 
+                            sx={{
                                 width: '100%',
-                            },
-                        }} variant="contained">
+                                "@media screen and (max-width:600px)": {
+                                    width: '100%',
+                                },
+                            }} 
+                            variant="contained"
+                            type='submit'
+                        >
                             教材を登録する
                         </Button>
-            </CardContent>
-        </Card>
+                    </form>
+                </CardContent>
+            </Card>
+          </>
+        }
+        <CustomSnackbar
+          open={snackbar.open}
+          handleClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          message={snackbar.message}
+        />
     </MainContainer>
     )
 };

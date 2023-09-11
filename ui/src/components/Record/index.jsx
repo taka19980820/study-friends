@@ -83,6 +83,9 @@ Chart.register(...registerables, ChartDataLabels);
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
+import * as RestAccess from '../../utils/RestAccess';
+import * as dateTimeHandler from '../../utils/dateTimeHandler'
+
 // import MainContent from './MainContent'; // Create a separate component for Main content
 
 const drawerWidth = 240;
@@ -120,58 +123,67 @@ const initialEndDate = new Date();
 const initialStartDate = new Date();
 initialStartDate.setDate(initialEndDate.getDate() - 6); 
 
-export default function Record({ open }) {
-    const [data, setData] = React.useState({
-        labels: [],
-        datasets: [
-            {
-              label: 'PHP',
-              data: [260, 50, 30, 75, 120, 90, 150], // それぞれの日付に対応する時間データ
-              // backgroundColor: 'rgba(75, 192, 192, 0.6)',
-              // borderColor: 'rgba(75, 192, 192, 1)',
-              backgroundColor: '#888',
-              borderColor: '#888',
-              borderWidth: 1,
-            },
-            {
-              label: 'LPIC',
-              data: [260, 50, 30, 75, 120, 90, 150], // それぞれの日付に対応する時間データ
-              backgroundColor: 'rgba(75, 192, 192, 0.6)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-      
-              borderWidth: 1,
-            },
-            {
-              label: 'CCNA',
-              data: [260, 50, 30, 75, 120, 90, 150], // それぞれの日付に対応する時間データ
-              backgroundColor: 'rgba(75, 12, 192, 0.6)',
-              borderColor: 'rgba(75, 12, 192, 1)',
-      
-              borderWidth: 1,
-            },
-            {
-              label: 'Laravel',
-              data: [260, 50, 30, 75, 120, 90, 150], // それぞれの日付に対応する時間データ
-              backgroundColor: 'rgba(7, 192, 192, 0.6)',
-              borderColor: 'rgba(7, 192, 192, 1)',
-      
-              borderWidth: 1,
-            },
-            {
-              label: 'Python',
-              data: [1260, 1350, 630, 575, 1120, 1190, 1150], // それぞれの日付に対応する時間データ
-              backgroundColor: 'rgba(75, 192, 19, 0.6)',
-              borderColor: 'rgba(75, 192, 19, 1)',
-      
-              borderWidth: 1,
-            },
-          ],
+export default function Record({ open, userId }) {
+    const [ studyTime, setStudyTime ] = React.useState({});
+    const [ dailyData, setDailyData ] = React.useState({
+        labels:[],
+        datasets:[]
     });
+    const [ weeklyData, setWeeklyData ] = React.useState({
+        labels:[],
+        datasets:[]
+    });
+    const [ monthlyData, setMonthlyData ] = React.useState({
+        labels:[],
+        datasets:[]
+    });
+    const [ display, setDisplay ] = React.useState(false);
+    const [fontSize, setFontSize] = React.useState(14);
+    const [value, setValue] = React.useState('1');
+    const [startDate, setStartDate] = React.useState(initialStartDate);
+    const [endDate, setEndDate] = React.useState(initialEndDate);
+
     React.useEffect(() => {
-        const lastWeekDates = getLastWeekDates(endDate);
-        const newData = {...data};
-        newData.labels = lastWeekDates;
-        setData(newData);
+        const getAllData = async () => {
+            //勉強時間取得
+            const studyTime = await RestAccess.get('/users/' + userId + '/study-hours');
+            //日別勉強時間（グラフ用データ）
+            const dailyData = await RestAccess.get('/users/' + userId + '/study-hours/daily');
+            // //週別勉強時間（グラフ用データ）
+            // const weeklyData = await RestAccess.get('/users/' + userId + '/study-hours/weekly');
+            // //月別勉強時間（グラフ用データ）
+            // const monthlyData = await RestAccess.get('/users/' + userId + '/study-hours/monthly');
+
+
+            if(studyTime.status == 200 && dailyData.status == 200) {
+                //グラフ用データ作成
+                const newData = {};
+                const lastWeekDates = getLastWeekDates(endDate);
+                newData.datasets = [...dailyData.data];
+                newData.labels = lastWeekDates;
+
+                setStudyTime(studyTime.data);
+                setDailyData(newData);
+                setDisplay(true);
+            } else {
+                console.log('データ取得に失敗しました');
+            }
+        }
+        //グラフ文字サイズ関連
+        const updateFontSize = () => {
+            const width = window.innerWidth;
+            setFontSize(width < 480 ? 8 : 12);
+        };
+        // 初回レンダリング時にフォントサイズを更新
+        updateFontSize();
+        // ウィンドウのリサイズ時にフォントサイズを更新
+        window.addEventListener('resize', updateFontSize);
+        getAllData();
+
+        // クリーンアップ関数
+        return () => {
+            window.removeEventListener('resize', updateFontSize);
+        };
     }, []);
 
     //一週間分の日付取得
@@ -200,13 +212,12 @@ export default function Record({ open }) {
             tempDate.setHours(0, 0, 0, 0);
             dates.push(formatDate(tempDate, 'MMDD'));
         }
-        console.log(dates)
+
         return dates;
     }
 
     //過去半年の年月を取得
     const getLastHaflYearMonth = (date) => {
-        console.log(date)
         let yearMonths = [];
         for(let i = 0; i < 7; i++) {
             let tempDate = new Date(date);
@@ -216,56 +227,75 @@ export default function Record({ open }) {
         return yearMonths;
     }
 
-    const [value, setValue] = React.useState('1');
-    const handleChange = (event, newValue) => {
+    // タブ切り替え
+    const handleChange = async (event, newValue) => {
         const newStartDate = new Date();
         const newEndDate = new Date();
-        const newData = {...data};
+        const newData = {};
         switch(newValue) {
             case '1':
                 //日別表示
-                newStartDate.setDate(newEndDate.getDate() - 6)
-                newData.labels = getLastWeekDates(newEndDate);
-
-                setData(newData);
-                setStartDate(newStartDate)
-                setEndDate(newEndDate)
-                break;
-                
+                //日別勉強時間（グラフ用データ）
+                newStartDate.setDate(newEndDate.getDate() - 6);
+                const dailyData = await RestAccess.get('/users/' + userId + '/study-hours/daily', {params: {
+                    start: dateTimeHandler.formatDate(newStartDate, 'YYYY-MM-DD'),
+                    end: dateTimeHandler.formatDate(newEndDate, 'YYYY-MM-DD')
+                }});
+                if(dailyData.status == 200) {
+                    newData.datasets = [...dailyData.data];
+                    newData.labels = getLastWeekDates(newEndDate);
+                    setDailyData(newData);
+                    setStartDate(newStartDate)
+                    setEndDate(newEndDate)
+                } else {
+                    //todo:エラーをstateで管理して、エラー表示する。
+                    console.log('error')
+                }
                 break;
             case '2':
                 //週別表示
+                //週別勉強時間（グラフ用データ）
                 const startOfWeek = getStartOfWeek(new Date());
                 const endOfWeek = getEndOfWeek(new Date());
-                newStartDate.setDate(startOfWeek.getDate() - 42);
-
-                newData.labels = getLastSevenWeekDates(newStartDate);
-
-                setData(newData);
-                setStartDate(newStartDate);
-                setEndDate(endOfWeek);
+                const sd = new Date(startOfWeek);
+                sd.setDate(startOfWeek.getDate() - 42);
+                // newStartDate.setDate(startOfWeek.getDate() - 42);
+                const weeklyData = await RestAccess.get('/users/' + userId + '/study-hours/weekly', {params: {
+                    end: dateTimeHandler.formatDate(newEndDate,'YYYY-MM-DD')
+                }});
+                if(weeklyData.status === 200) {
+                    newData.datasets = [...weeklyData.data];
+                    newData.labels = getLastSevenWeekDates(sd);
+                    setWeeklyData(newData);
+                    setStartDate(sd);
+                    setEndDate(endOfWeek);
+                } else {
+                    //todo:エラーをstateで管理して、エラー表示する。
+                    console.log('error')
+                }
                 break;
             case '3':
                 //月別表示
-                
+                //月別勉強時間（グラフ用データ）
                 const startOfMonth = getStartOfMonth(newEndDate);
                 const sixMonthAgo = new Date(startOfMonth);
                 sixMonthAgo.setMonth(startOfMonth.getMonth() - 6);
-                
-
-                newData.labels = getLastHaflYearMonth(sixMonthAgo);
-
-                setData(newData);
-                setStartDate(sixMonthAgo);
-                setEndDate(startOfMonth);
+                const monthlyData = await RestAccess.get('/users/' + userId + '/study-hours/monthly', {params: {
+                    end: dateTimeHandler.formatDate(newEndDate,'YYYY-MM')
+                }});
+                if(monthlyData.status === 200) {
+                    newData.datasets = [...monthlyData.data];
+                    newData.labels = getLastHaflYearMonth(sixMonthAgo);
+                    setMonthlyData(newData);
+                    setStartDate(sixMonthAgo);
+                    setEndDate(startOfMonth);
+                } else {
+                    console.log('error')
+                }
                 break;
         }
         setValue(newValue);
     };
-
-    //日付選択
-    const [startDate, setStartDate] = React.useState(initialStartDate);
-    const [endDate, setEndDate] = React.useState(initialEndDate);
 
     //日付のフォーマット
     const formatDate = (date, format = 'YYYYMMDD') => {
@@ -286,20 +316,20 @@ export default function Record({ open }) {
 
     //現在の日付から週の初めを取得する
     function getStartOfWeek(date) {
-        let dayOfWeek = date.getDay(); // 0 (Sunday) - 6 (Saturday)
-        let offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 日曜日の場合は6, それ以外はdayOfWeek - 1
+        let dayOfWeek = date.getDay(); 
+        let offset = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
         let startDate = new Date(date);
         startDate.setDate(date.getDate() - offset);
-        startDate.setHours(0, 0, 0, 0); // ゼロ時間に設定する
+        startDate.setHours(0, 0, 0, 0);
         return startDate;
     }
 
     function getEndOfWeek(date) {
-        let dayOfWeek = date.getDay(); // 0 (Sunday) - 6 (Saturday)
-        let offset = dayOfWeek === 0 ? 0 : 7 - dayOfWeek; // 日曜日の場合は0, それ以外は7 - dayOfWeek
+        let dayOfWeek = date.getDay();
+        let offset = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
         let endDate = new Date(date);
         endDate.setDate(date.getDate() + offset);
-        endDate.setHours(23, 59, 59, 999); // 23時59分59秒999ミリ秒に設定する
+        endDate.setHours(23, 59, 59, 999);
         return endDate;
     }
 
@@ -310,115 +340,188 @@ export default function Record({ open }) {
         return newDate;
     }
 
-    const handlePrevMonth = () => {
+    //月切り替え
+    const handlePrevMonth = async () => {
         const newStartDate = new Date(startDate);
         const newEndDate = new Date(endDate);
         newStartDate.setMonth(startDate.getMonth() - 1);
         newEndDate.setMonth(endDate.getMonth() - 1);
+        const newData = {};
 
-        const newData = {...data};
-        newData.labels = getLastHaflYearMonth(newStartDate);
+        const monthlyData = await RestAccess.get('/users/' + userId + '/study-hours/monthly', {params: {
+            end: dateTimeHandler.formatDate(newEndDate,'YYYY-MM')
+        }});
 
-        setData(newData);
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
+        if(monthlyData.status === 200) {
+            newData.datasets = [...monthlyData.data];
+            newData.labels = getLastHaflYearMonth(newStartDate);
+            setMonthlyData(newData);
+            setStartDate(newStartDate);
+            setEndDate(newEndDate);
+        } else {
+            console.log('error')
+        }
+
+        // const newData = {...data};
+        // newData.labels = getLastHaflYearMonth(newStartDate);
+
+        // setData(newData);
+        // setStartDate(newStartDate);
+        // setEndDate(newEndDate);
     }
 
-    const handleNextMonth = () => {
+    const handleNextMonth = async () => {
         const newStartDate = new Date(startDate);
         const newEndDate = new Date(endDate);
         newStartDate.setMonth(startDate.getMonth() + 1);
         newEndDate.setMonth(endDate.getMonth() + 1);
+        const newData = {};
 
-        const newData = {...data};
-        newData.labels = getLastHaflYearMonth(newStartDate);
+        const monthlyData = await RestAccess.get('/users/' + userId + '/study-hours/monthly', {params: {
+            end: dateTimeHandler.formatDate(newEndDate,'YYYY-MM')
+        }});
 
-        setData(newData);
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
+        if(monthlyData.status === 200) {
+            newData.datasets = [...monthlyData.data];
+            newData.labels = getLastHaflYearMonth(newStartDate);
+            setMonthlyData(newData);
+            setStartDate(newStartDate);
+            setEndDate(newEndDate);
+        } else {
+            console.log('error')
+        }
+
+        // const newData = {...data};
+        // newData.labels = getLastHaflYearMonth(newStartDate);
+
+        // setData(newData);
+        // setStartDate(newStartDate);
+        // setEndDate(newEndDate);
     }
     
-    
-    const handlePrevWeek = () => {
+    //週切り替え
+    const handlePrevWeek = async () => {
         const newEndDate = new Date(endDate);
         newEndDate.setDate(endDate.getDate() - 7);
         const startOfWeek = getStartOfWeek(newEndDate);
         const newStartDate = new Date(startOfWeek);
         newStartDate.setDate(startOfWeek.getDate() - 7 * 6);
+        const newData = {};
 
-        const newData = {...data};
-        newData.labels = getLastSevenWeekDates(newStartDate);
+        const weeklyData = await RestAccess.get('/users/' + userId + '/study-hours/weekly', {params: {
+            end: dateTimeHandler.formatDate(newEndDate,'YYYY-MM-DD')
+        }});
+        if(weeklyData.status === 200) {
+            newData.datasets = [...weeklyData.data];
+            newData.labels = getLastSevenWeekDates(newStartDate);
+            setWeeklyData(newData);
+            setStartDate(newStartDate);
+            setEndDate(newEndDate);
+        } else {
+            //todo:エラーをstateで管理して、エラー表示する。
+            console.log('error')
+        }
 
-        setData(newData);
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
+        // const newData = {...data};
+        // newData.labels = getLastSevenWeekDates(newStartDate);
+
+        // setData(newData);
+        // setStartDate(newStartDate);
+        // setEndDate(newEndDate);
     }
 
-    const handleNextWeek = () => {
+    const handleNextWeek = async () => {
         const newEndDate = new Date(endDate);
         newEndDate.setDate(endDate.getDate() + 7);
         const startOfWeek = getStartOfWeek(newEndDate);
         const newStartDate = new Date(startOfWeek);
         newStartDate.setDate(startOfWeek.getDate() - 7 * 6);
+        const newData = {};
 
-        const newData = {...data};
-        newData.labels = getLastSevenWeekDates(newStartDate);
+        const weeklyData = await RestAccess.get('/users/' + userId + '/study-hours/weekly', {params: {
+            end: dateTimeHandler.formatDate(newEndDate,'YYYY-MM-DD')
+        }});
+        if(weeklyData.status === 200) {
+            newData.datasets = [...weeklyData.data];
+            newData.labels = getLastSevenWeekDates(newStartDate);
+            setWeeklyData(newData);
+            setStartDate(newStartDate);
+            setEndDate(newEndDate);
+        } else {
+            //todo:エラーをstateで管理して、エラー表示する。
+            console.log('error')
+        }
 
-        setData(newData);
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
+        // const newData = {...data};
+        // newData.labels = getLastSevenWeekDates(newStartDate);
+
+        // setData(newData);
+        // setStartDate(newStartDate);
+        // setEndDate(newEndDate);
     }
 
-    const handlePrevDate = () => {
-        const newStartDate = new Date();
-        const newEndDate = new Date();
+    //日切り替え
+    const handlePrevDate = async () => {
+        const newStartDate = new Date(startDate);
+        const newEndDate = new Date(endDate);
         newStartDate.setDate(startDate.getDate() - 1);
         newEndDate.setDate(endDate.getDate() - 1)
+        const newData = {};
 
-        const newData = {...data};
-        newData.labels = getLastWeekDates(newEndDate);
+        const dailyData = await RestAccess.get('/users/' + userId + '/study-hours/daily', {params: {
+            start: dateTimeHandler.formatDate(newStartDate, 'YYYY-MM-DD'),
+            end: dateTimeHandler.formatDate(newEndDate, 'YYYY-MM-DD')
+        }});
+        if(dailyData.status == 200) {
+            newData.datasets = [...dailyData.data];
+            newData.labels = getLastWeekDates(newEndDate);
+            setDailyData(newData);
+            setStartDate(newStartDate)
+            setEndDate(newEndDate)
+        } else {
+            //todo:エラーをstateで管理して、エラー表示する。
+            console.log('error')
+        }
 
-        setData(newData);
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
+        // const newData = {...data};
+        // newData.labels = getLastWeekDates(newEndDate);
+
+        // setData(newData);
+        // setStartDate(newStartDate);
+        // setEndDate(newEndDate);
     }
 
-    const handleNextDate = () => {
-        const newStartDate = new Date();
-        const newEndDate = new Date();
+    const handleNextDate = async () => {
+        const newStartDate = new Date(startDate);
+        const newEndDate = new Date(endDate);
         newStartDate.setDate(startDate.getDate() + 1);
         newEndDate.setDate(endDate.getDate() + 1)
+        const newData = {};
 
-        const newData = {...data};
-        newData.labels = getLastWeekDates(newEndDate);
+        const dailyData = await RestAccess.get('/users/' + userId + '/study-hours/daily', {params: {
+            start: dateTimeHandler.formatDate(newStartDate, 'YYYY-MM-DD'),
+            end: dateTimeHandler.formatDate(newEndDate, 'YYYY-MM-DD')
+        }});
+        if(dailyData.status == 200) {
+            newData.datasets = [...dailyData.data];
+            newData.labels = getLastWeekDates(newEndDate);
+            setDailyData(newData);
+            setStartDate(newStartDate)
+            setEndDate(newEndDate)
+        } else {
+            //todo:エラーをstateで管理して、エラー表示する。
+            console.log('error')
+        }
 
-        setData(newData);
-        setStartDate(newStartDate);
-        setEndDate(newEndDate);
+        // const newData = {...data};
+        // newData.labels = getLastWeekDates(newEndDate);
+
+        // setData(newData);
+        // setStartDate(newStartDate);
+        // setEndDate(newEndDate);
     }
 
-    //グラフ部分（日別）
-    const [fontSize, setFontSize] = React.useState(14);
-
-    React.useEffect(() => {
-    //   const windowWidth = window.innerWidth;
-    //   setFontSize(windowWidth < 480 ? 8 : 12);
-        const updateFontSize = () => {
-            const width = window.innerWidth;
-            setFontSize(width < 480 ? 8 : 12);
-        };
-
-        // 初回レンダリング時にフォントサイズを更新
-        updateFontSize();
-
-        // ウィンドウのリサイズ時にフォントサイズを更新
-        window.addEventListener('resize', updateFontSize);
-
-        // クリーンアップ関数
-        return () => {
-            window.removeEventListener('resize', updateFontSize);
-        };
-    }, []);
+    
 
     const options = {
         maintainAspectRatio: false,
@@ -475,7 +578,7 @@ export default function Record({ open }) {
             color: '#000',
             align: 'end',
             anchor: 'end',
-            offset: -4,
+            offset: -7,
             font: {
                 size: fontSize
             }
@@ -486,108 +589,112 @@ export default function Record({ open }) {
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
-        <Card>
-            <CardContent>
-                <Grid container sx={{ justifyContent: 'space-around' }}>
-                    <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                        <Box>
-                            <Typography>今日</Typography>
-                            <Typography>0時間</Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                        <Box>
-                            <Typography>今月</Typography>
-                            <Typography>0時間</Typography>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                        <Box>
-                            <Typography>総合</Typography>
-                            <Typography>0時間</Typography>
-                        </Box>
-                    </Grid>
-                </Grid>
-            </CardContent>
-        </Card>
+        <h2 style={{ marginBottom: '10px'}}>勉強時間</h2>
+        { display && 
+            <React.Fragment>
+                <Card>
+                    <CardContent>
+                        <Grid container sx={{ justifyContent: 'space-around' }}>
+                            <Grid item xs={4} sx={{ textAlign: 'center' }}>
+                                <Box>
+                                    <Typography>今日</Typography>
+                                    <Typography>{dateTimeHandler.formatTime(studyTime.today_hours)}</Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={4} sx={{ textAlign: 'center' }}>
+                                <Box>
+                                    <Typography>今月</Typography>
+                                    <Typography>{dateTimeHandler.formatTime(studyTime.month_hours)}</Typography>
+                                </Box>
+                            </Grid>
+                            <Grid item xs={4} sx={{ textAlign: 'center' }}>
+                                <Box>
+                                    <Typography>総合</Typography>
+                                    <Typography>{dateTimeHandler.formatTime(studyTime.totalHours)}</Typography>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
 
-        
-        <Box sx={{ width: '100%', typography: 'body1', mt: 2 }}>
-            <TabContext value={value}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <TabList onChange={handleChange} aria-label="lab API tabs example">
-                    <Tab label="日" value="1" />
-                    <Tab label="週" value="2" />
-                    <Tab label="月" value="3" />
-                </TabList>
+                
+                <Box sx={{ width: '100%', typography: 'body1', mt: 2 }}>
+                    <TabContext value={value}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <TabList onChange={handleChange} aria-label="lab API tabs example">
+                            <Tab label="日" value="1" />
+                            <Tab label="週" value="2" />
+                            <Tab label="月" value="3" />
+                        </TabList>
+                        </Box>
+
+                        
+                        {/* 日別 */}
+                        <TabPanel value="1" sx={{ p: 0 }}>
+                            <Card>
+                                <CardContent>
+                                    <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                        <Button onClick={handlePrevDate}>
+                                            <ChevronLeftIcon />
+                                        </Button>
+                                    <Typography>{formatDate(startDate) + ' 〜 ' + formatDate(endDate)}</Typography>
+                                    <Button onClick={handleNextDate}>
+                                            <ChevronRightIcon />
+                                    </Button>
+                                    </Stack>
+                                        <Box sx={{ width: '100%', height: '300px'}}>
+                                            <Bar data={dailyData} options={options} />
+                                        </Box>
+                                    
+                                    {/* <Bar data={data} options={options} /> */}
+                                </CardContent>
+                            </Card>                       
+                        </TabPanel>
+                        {/* 週別 */}
+                        <TabPanel value="2" sx={{ p: 2 }}>
+                            <Card>
+                                <CardContent>
+                                    <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                        <Button onClick={handlePrevWeek}>
+                                            <ChevronLeftIcon />
+                                        </Button>
+                                    <Typography>{formatDate(startDate) + ' 〜 ' + formatDate(endDate)}</Typography>
+                                    <Button onClick={handleNextWeek}>
+                                            <ChevronRightIcon />
+                                    </Button>
+                                    </Stack>
+                                        <Box sx={{ width: '100%', height: '300px'}}>
+                                            <Bar data={weeklyData} options={options} />
+                                        </Box>
+                                    {/* <Bar data={data} options={options} /> */}
+                                </CardContent>
+                            </Card>
+                        </TabPanel>
+                        {/* 月別 */}
+                        <TabPanel value="3" sx={{ p: 0 }}>
+                            <Card>
+                                <CardContent>
+                                    <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
+                                        <Button onClick={handlePrevMonth}>
+                                            <ChevronLeftIcon />
+                                        </Button>
+                                    <Typography>{formatDate(startDate, 'YYYYMM') + ' 〜 ' + formatDate(endDate, 'YYYYMM')}</Typography>
+                                    <Button onClick={handleNextMonth}>
+                                            <ChevronRightIcon />
+                                    </Button>
+                                    </Stack>
+                                        <Box sx={{ width: '100%', height: '300px'}}>
+                                            <Bar data={monthlyData} options={options} />
+                                        </Box>
+                                    {/* <Bar data={data} options={options} /> */}
+                                </CardContent>
+                            </Card>             
+                        </TabPanel>
+                        
+                    </TabContext>
                 </Box>
-
-                
-                {/* 勉強時間 */}
-                <TabPanel value="1" sx={{ p: 0 }}>
-                    <Card>
-                        <CardContent>
-                            <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Button onClick={handlePrevDate}>
-                                    <ChevronLeftIcon />
-                                </Button>
-                               <Typography>{formatDate(startDate) + ' 〜 ' + formatDate(endDate)}</Typography>
-                               <Button onClick={handleNextDate}>
-                                    <ChevronRightIcon />
-                               </Button>
-                            </Stack>
-                                <Box sx={{ width: '100%', height: '300px'}}>
-                                    <Bar data={data} options={options} />
-                                </Box>
-                            
-                            {/* <Bar data={data} options={options} /> */}
-                        </CardContent>
-                    </Card>                       
-                </TabPanel>
-
-                <TabPanel value="2" sx={{ p: 2 }}>
-                    <Card>
-                        <CardContent>
-                            <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Button onClick={handlePrevWeek}>
-                                    <ChevronLeftIcon />
-                                </Button>
-                               <Typography>{formatDate(startDate) + ' 〜 ' + formatDate(endDate)}</Typography>
-                               <Button onClick={handleNextWeek}>
-                                    <ChevronRightIcon />
-                               </Button>
-                            </Stack>
-                                <Box sx={{ width: '100%', height: '300px'}}>
-                                    <Bar data={data} options={options} />
-                                </Box>
-                            {/* <Bar data={data} options={options} /> */}
-                        </CardContent>
-                    </Card>
-                </TabPanel>
-
-                <TabPanel value="3" sx={{ p: 0 }}>
-                    <Card>
-                        <CardContent>
-                            <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <Button onClick={handlePrevMonth}>
-                                    <ChevronLeftIcon />
-                                </Button>
-                               <Typography>{formatDate(startDate, 'YYYYMM') + ' 〜 ' + formatDate(endDate, 'YYYYMM')}</Typography>
-                               <Button onClick={handleNextMonth}>
-                                    <ChevronRightIcon />
-                               </Button>
-                            </Stack>
-                                <Box sx={{ width: '100%', height: '300px'}}>
-                                    <Bar data={data} options={options} />
-                                </Box>
-                            {/* <Bar data={data} options={options} /> */}
-                        </CardContent>
-                    </Card>             
-                </TabPanel>
-                
-            </TabContext>
-        </Box>
-
+            </React.Fragment>
+        }
     </MainContainer>
     )
 };

@@ -1,9 +1,17 @@
-// Main.js
 import React from 'react';
 import { styled } from '@mui/material/styles';
-import { Card, CardHeader, CardContent, Button, List, ListItem, ListItemText, Typography } from '@mui/material';
+import { Card, CardHeader, CardContent, Button, List, ListItem, ListItemText, Typography, Box } from '@mui/material';
 import { useRouter } from 'next/router';
-// import { useRegisterInput } from '../../../../context/RegisterInputContext';
+import { AuthContext } from '@/context/Auth/AuthContext';
+import { useSnackbar } from '@/context/SnackbarContext';
+import { useState, useContext, useEffect } from 'react';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import Password from './Password';
+import EditAccount from './EditAccount';
+import * as RestAccess from '@/utils/RestAccess';
 import Link from 'next/link'
 
 const drawerWidth = 240;
@@ -37,81 +45,58 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 
 export default function Account({ open }) {
+    const { authUser, setAuthUser } = useContext(AuthContext);
+    const { showSnackbar } = useSnackbar(); 
+    const [ display, setDisplay ] = useState(false);
     const router = useRouter();
-    console.log(router)
-    // const { registerInput } = useRegisterInput();
-    console.log(Object.keys(router.query).length)
-    const [accountData, setAccountData] = React.useState(
-        Object.keys(router.query).length > 0 ?
-        {
-            name: router.query.name,
-            email: router.query.email,
-            password: router.query.password
-        }
-        :
-        {
-            name: '堀越貴也',
-            email: 'takaya.b.b0820@gmail.com',
-            password: '////////'
-        }
-    );
 
-    const handleEditAccount = () => {
-        // ここで実際の登録処理を行う
-        // API呼び出しやデータベースへの保存など
+    useEffect(() => {
+    }, []);
+    const [accountData, setAccountData] = useState(authUser);
+    const [ value, setValue ] = useState("1");
 
-        // 登録後、ホームページなどにリダイレクトする
-        router.push({
-            pathname: '/editaccount',
-            query: accountData,
-        }, '/editaccount');
+    const handleChange = (e, newValue) => {
+        setValue(newValue);
+    }
+
+    const changeEmail = async (formData) => {
+        const response = await RestAccess.post('/change-email', formData, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+        });
+        if(response.status === 200) {
+            setAccountData({
+                ...accountData,
+                email: formData.email
+            });
+            showSnackbar('メールアドレスを更新しました');
+        } else {
+            showSnackbar('エラーが発生しました', 'error');
+        }
     }
 
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
-        <Card>
-            <CardHeader title="アカウント情報" />
-            <CardContent>
-                <List>
-                    <ListItem>
-                        <ListItemText 
-                            primary="名前" 
-                            secondary={
-                                <Typography variant='h6'>
-                                    {accountData.name}
-                                </Typography>
-                            } 
-                            />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText 
-                            primary="メールアドレス" 
-                            secondary={
-                                <Typography variant='h6'>
-                                    {accountData.email}
-                                </Typography>
-                            }  
-                        />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText 
-                            primary="パスワード" 
-                            secondary={
-                            <Typography variant='h6'>
-                                {'*********'}
-                            </Typography>} />
-                    </ListItem>
-                </List>  
-                    <Button 
-                        sx={{ fontWeight: 'bold' }}
-                        onClick={handleEditAccount}
-                    >
-                        アカウント編集
-                    </Button>
-                    <Button color='error' sx={{ fontWeight: 'bold' }}>アカウント削除</Button>
-            </CardContent>
-        </Card>
+        <h2>アカウント情報</h2>
+        <TabContext value={value}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <TabList onChange={handleChange}>
+                <Tab label="アカウント情報" value='1' />
+                <Tab label="パスワード" value='2' />
+            </TabList>
+            </Box>
+            
+            <TabPanel value='1' sx={{ p: 2 }}>
+                <EditAccount accountData={accountData} changeEmail={changeEmail}/>
+            </TabPanel>
+
+            <TabPanel value='2' sx={{ p: 0 }}>
+                <Password />
+            </TabPanel>
+        </TabContext>
+       
     </MainContainer>
     )
 };
