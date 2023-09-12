@@ -24,13 +24,9 @@ export default function RoomMessage({ roomId, authUser, msg }) {
     const [ messages, setMessages ] = React.useState([...msg])
 
     React.useEffect(() => {
-        const MESSAGE_EVENT = 'sent-message';
-        const MESSAGE_EVENT_CHANNEL = 'private-room.' + roomId;
-        const PUSHER_APP_KEY = "2d0958b5739e78badb9f";
-        const PUSHER_APP_CLUSTER = "ap3";
         const csrfToken = Cookies.get('XSRF-TOKEN');
-        const pusher = new Pusher(PUSHER_APP_KEY, {
-            cluster: PUSHER_APP_CLUSTER,
+        const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY, {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER,
             authEndpoint: '/api/broadcasting/auth',
             auth: {
                 headers: {
@@ -40,9 +36,9 @@ export default function RoomMessage({ roomId, authUser, msg }) {
             }
         });
     
-        const channel = pusher.subscribe(MESSAGE_EVENT_CHANNEL);
-        channel.bind(MESSAGE_EVENT, function(data) {
-            setMessages(prevMessages => [...prevMessages, data.message]);  // 以前のメッセージに新しいメッセージを追加
+        const channel = pusher.subscribe(process.env.NEXT_PUBLIC_MESSAGE_EVENT_CHANNEL + roomId);
+        channel.bind(process.env.NEXT_PUBLIC_MESSAGE_EVENT, function(data) {
+            setMessages(prevMessages => [...prevMessages, data.message]);
         });
     
         return () => {
