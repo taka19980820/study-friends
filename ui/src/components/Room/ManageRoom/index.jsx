@@ -202,7 +202,6 @@ export default function ManageRoom({ open, roomId }) {
                             <TextField
                                 required
                                 multiline
-                                rows={3}
                                 id="description"
                                 name="description"
                                 value={formData.description}
