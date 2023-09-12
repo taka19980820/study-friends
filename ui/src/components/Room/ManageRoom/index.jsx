@@ -207,7 +207,6 @@ export default function ManageRoom({ open, roomId }) {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
-                                multiline
                                 rows={3}
                                 variant="outlined"
                                 fullWidth

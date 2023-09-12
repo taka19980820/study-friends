@@ -1,69 +1,34 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
 import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Collapse from '@mui/material/Collapse';
 import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
 import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
 import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
 import ListItem from '@mui/joy/ListItem';
 import Divider from '@mui/material/Divider';
-import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
 import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
 import IconButton from '@mui/joy/IconButton';
-
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-
-
-import { Person, Circle } from '@mui/icons-material';
-import ImageIcon from '@mui/icons-material/Image';
-import WorkIcon from '@mui/icons-material/Work';
-import BeachAccessIcon from '@mui/icons-material/BeachAccess';
-import PersonIcon from '@mui/icons-material/Person';
-import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
-
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-
 import Link from 'next/link'
 import MuiLink from '@mui/material/Link';
-
-import * as dateTimeHandler from '../../../utils/dateTimeHandler'
 import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { AuthContext } from '../../../context/Auth/AuthContext';
@@ -202,11 +167,6 @@ export default function Material({ open, materialData, isLiked, isRegisterd, cat
         }
     }
     
-    //教材なし
-    if(materialData.id == 14) {
-        return null;
-    }
-
 
     const [ categoryDialog, setCategoryDialog ] = React.useState(false);
     const handleRegisterMaterial = () => {
@@ -244,6 +204,11 @@ export default function Material({ open, materialData, isLiked, isRegisterd, cat
 
     const handleCategoryDialogClose = () => {
         setCategoryDialog(false);
+    }
+
+    //教材なし
+    if(materialData.id == 1) {
+        return null;
     }
 
   return  (
