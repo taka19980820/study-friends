@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // const customAxios = axios.create({baseURL: "http://192.168.0.192/api"});
-const customAxios = axios.create({baseURL: "http://localhost/api"});
+const customAxios = axios.create({baseURL: process.env.NEXT_PUBLIC_API_ENDPOINT});
 
 export async function get(url, options = {}) {
   return customAxios.get(url, {
