@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Header from '../../components/Header'
 import SideMenu from '../../components/SideMenu';
-import EditAccount from '../components/Account/EditAccount';
+import EditAccount from '../../components/Account/EditAccount';
 import Container from '@mui/material/Container';
 import { useRouter } from 'next/router';
 import LoadingPage from '../../components/Loading';
