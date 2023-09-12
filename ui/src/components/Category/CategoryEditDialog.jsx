@@ -50,7 +50,7 @@ export default function CategoryEditDialog({ open, categories, categoryDialogClo
     //カテゴリ編集
     const [ editCategoryValues, setEditCategoryValues ] = React.useState({
         category_name : "",
-        category_color : "#"
+        category_color : ""
     });
     
     const handleEditCategory = async (e, categoryId) => {

@@ -224,7 +224,7 @@ export default function MyMaterial({ removeMaterial, materialData, isLiked, cate
     }
 
     
-    if(materialData.id == 15) {
+    if(materialData.id == 1) {
         return null;
     }
 

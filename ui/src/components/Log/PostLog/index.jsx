@@ -57,7 +57,7 @@ export default function PostLog({ open }) {
       mode: "onChange",
       defaultValues: {
         study_date: dateTimeHandler.formatDate(new Date(), 'YYYY-MM-DD'),
-        my_material_id: 15,
+        my_material_id: 1,
         study_hour: 0,
         hour: 0,
         minuite: 0,
