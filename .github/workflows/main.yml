@@ -1,0 +1,26 @@
+name: Deploy to Lightsail
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+          - name: Deploy
+            uses: appleboy/ssh-action@master
+            with:
+              host: ${{ secrets.DEPLOY_HOST }}
+              username: ${{ secrets.DEPLOY_USER }}
+              port: ${{ secrets.DEPLOY_PORT }}
+              key: ${{ secrets.DEPLOY_KEY }}
+              script: |
+                cd ${{ secrets.DEPLOY_DIR }}
+                sudo git pull origin main
+                cd ${{ secrets.BACKEND_DIR }}
+                composer install --no-dev && php artisan migrate
+                cd ${{ secrets.FRONTEND_DIR }}
+                npm install && npm run build && pm2 restart study-friends
