@@ -81,6 +81,7 @@ export default function AddMaterial({ open }) {
         pages: "",
         url: "",
         category_id: 1,
+        image: null,
         tags: []
     })
 
@@ -116,9 +117,11 @@ export default function AddMaterial({ open }) {
 
     const handleSubmit = async (event) => {
       event.preventDefault();
+      // console.log(formData);
+      // return ;
       const response = await RestAccess.post('/materials', formData, {
         headers: {
-        'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data',
       }})
       if(response.status === 200) {
         showSnackbar('教材を登録しました', 'success');
@@ -145,6 +148,18 @@ export default function AddMaterial({ open }) {
       });
   };
 
+  //画像アップロード
+  const [ fileName, setFileName ] = React.useState('');
+  const handleImgUpload = async (e) => {
+    const { name, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files[0],
+    });
+    setFileName(files[0]['name']);
+    e.target.value='';
+  }
+
   return  (
     
     <MainContainer open={open}>
@@ -166,8 +181,23 @@ export default function AddMaterial({ open }) {
                                     value={formData.material_name}
                                     onChange={handleChange}
                                     sx={{ mb: 2 }}
-                                />   
-                            <Typography>カテゴリ選択</Typography>
+                                />
+                            <Typography>教材画像</Typography>
+                                <input
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    id="img-upload"
+                                    type="file"
+                                    name="image"
+                                    onChange={handleImgUpload}
+                                />
+                            <Typography>{fileName}</Typography>
+                            <label htmlFor="img-upload">
+                                <Button variant="contained" component="span">
+                                    画像を選択
+                                </Button>
+                            </label>
+                            <Typography sx={{ mt: 2 }}>カテゴリ選択</Typography>
                             <Select
                                 value={formData.category_id}
                                 onChange={handleSetCategories}

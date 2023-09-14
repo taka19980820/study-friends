@@ -219,9 +219,9 @@ export default function Material({ open, materialData, isLiked, isRegisterd, cat
                 <Box>
                     <CardMedia
                         component="img"
-                        image="/bookImg.jpeg"
-                        alt="Live from space album cover"
-                        sx={{ width: '5em' }}
+                        image={materialData.img != null ? process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + materialData.img : "/bookImg.jpeg"}
+                        alt={materialData.material_name}
+                        sx={{ width: '5em', mr: 1 }}
                     />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>

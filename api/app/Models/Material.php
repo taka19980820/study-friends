@@ -15,7 +15,8 @@ class Material extends Model
         'url',
         'author',
         'pages',
-        'publisher'
+        'publisher',
+        'img'
     ];
 
     public function myMaterials() {

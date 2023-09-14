@@ -69,7 +69,7 @@ class RoomController extends Controller
                 $query->select('my_materials.id', 'my_materials.material_id');
             },
             'myMaterial.material' => function ($query) {
-                $query->select('materials.id','material_name');
+                $query->select('materials.id','material_name', 'img');
             },
             'comments.user' => function ($query) {
                 $query->select('users.id', 'name', 'profileimg');
@@ -117,7 +117,7 @@ class RoomController extends Controller
         $image = $request->file('image');
         if(isset($image)) {
             try {
-                $roomIconImgPath = $this->common->getSavedImgPath($image, 250, 250, 'uploads/images/roomicons/');
+                $roomIconImgPath = $this->common->getSavedImgPath($image, 200, 200, 'uploads/images/roomicons/');
             } catch (\Exception $e) {
                 return response()->json(['message' => $e->getMessage()], 500);
             }
@@ -164,7 +164,6 @@ class RoomController extends Controller
         $roomIconImgPath = '';
         $image = $request->file('image');
         if(isset($image)) {
-            var_dump('北で');
             $roomIcon = $room->room_icon;
             try {
                 $roomIconImgPath = $this->common->getSavedImgPath($image, 200, 200, 'uploads/images/roomicons/');
@@ -177,7 +176,6 @@ class RoomController extends Controller
         }
 
         return DB::transaction(function () use ($request, $room, $roomIconImgPath) {
-            var_dump($roomIconImgPath);
             $room->update([
                 'room_name' => $request->room_name ?? $room->room_name,
                 'description' => $request->description ?? $room->description,

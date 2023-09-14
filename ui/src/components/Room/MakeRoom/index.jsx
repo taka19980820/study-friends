@@ -88,8 +88,6 @@ export default function MakeRoom({ open }) {
         if(response.status === 200) {
           showSnackbar('ルームを作成しました', 'success');
           router.push('/rooms');
-        } else if (response.data.errors.image != undefined) {
-          showSnackbar('画像サイズが大きすぎます。', 'error');
         } else {
           showSnackbar(response.status.message, 'error');
         }

@@ -18,7 +18,7 @@ class StudyLogController extends Controller
                 $query->select('my_materials.id', 'my_materials.material_id');
             },
             'myMaterial.material' => function ($query) {
-                $query->select('materials.id','material_name');
+                $query->select('materials.id','material_name', 'img');
             },
             'comments.user' => function ($query) {
                 $query->select('users.id', 'name', 'profileimg');

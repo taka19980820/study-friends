@@ -1,4 +1,3 @@
-// Main.js
 import React from 'react';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/joy/Typography';
@@ -9,15 +8,11 @@ import Button from '@mui/material/Button';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import Link from 'next/link'
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
-import SearchBar from '../../Search/KeyWordSearch';
 import TagManager from '../../Tag/TagManager';
 import Material from '../Material';
 import * as RestAccess from '../../../utils/RestAccess';
 import { AuthContext } from '../../../context/Auth/AuthContext';
+import { useSnackbar } from '../../../context/SnackbarContext';
 
 const drawerWidth = 240;
 
@@ -51,6 +46,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 export default function Materials({ open }) {
     const { authUser } = React.useContext(AuthContext);
+    const { showSnackbar } = useSnackbar();
     //検索欄開閉
     const [searchContainerExpanded, setSearchContainerExpanded] = React.useState(false);
     const handleSearchContainer = () => {

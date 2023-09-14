@@ -8,6 +8,8 @@ use App\Models\MyMaterial;
 use App\Models\Tag;
 use Illuminate\Support\Facades\DB;
 use App\Libraries\Common;
+use Illuminate\Support\Facades\File;
+
 
 class MaterialController extends Controller
 {
@@ -75,11 +77,23 @@ class MaterialController extends Controller
             'pages' => 'nullable|integer',
             'publisher' => 'nullable|string|max:255',
             'category_id' => 'required|integer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'tags' => 'array',
             'tags.*' => 'string'
         ]);
 
-        return DB::transaction(function () use ($request) {
+        //画像保存
+        $materialImgPath = '';
+        $image = $request->file('image');
+        if(isset($image)) {
+            try {
+                $materialImgPath = $this->common->getSavedImgPath($image, 200, 200, 'uploads/images/materialimg/');
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+        }
+
+        return DB::transaction(function () use ($request, $materialImgPath) {
             //教材テーブルに登録
             $material = new Material();
             $material->material_name = $request->material_name;
@@ -88,6 +102,7 @@ class MaterialController extends Controller
             $material->author = $request->author ?? null;
             $material->pages = $request->pages ?? null;
             $material->publisher = $request->publisher ?? null;
+            $material->img = $materialImgPath != '' ? $materialImgPath : null;
             $material->save();
 
             //タグ登録
@@ -120,6 +135,7 @@ class MaterialController extends Controller
             'author' => 'nullable|string|max:255',
             'pages' => 'nullable|integer',
             'publisher' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'tags' => 'array',
             'tags.*' => 'string'
         ]);
@@ -129,14 +145,30 @@ class MaterialController extends Controller
             return response()->json(['message' => '教材が見つかりませんでした。'], 404);
         }
 
-        return DB::transaction(function () use ($request, $material) {
+        //画像保存
+        $materialImgPath = '';
+        $image = $request->file('image');
+        if(isset($image)) {
+            $materialImg = $material->img;
+            try {
+                $materialImgPath = $this->common->getSavedImgPath($image, 200, 200, 'uploads/images/materialimg/');
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+            if(File::exists($materialImg)) {
+                File::delete($materialImg);
+            }
+        }
+
+        return DB::transaction(function () use ($request, $material, $materialImgPath) {
             $material->update([
                 'material_name' => $request->material_name,
                 'description' => $request->description,
                 'url' => $request->url,
                 'author' => $request->author,
                 'pages' => $request->pages,
-                'publisher' => $request->publisher
+                'publisher' => $request->publisher,
+                'img' => $materialImgPath != '' ? $materialImgPath : $material->img,
             ]);
 
             //タグ更新

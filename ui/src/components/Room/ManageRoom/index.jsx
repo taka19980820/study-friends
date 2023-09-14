@@ -160,8 +160,6 @@ export default function ManageRoom({ open, roomId }) {
         if(response.status === 200) {
           showSnackbar('ルーム情報を更新しました', 'success');
           router.back();
-        } else if(response.data.errors.image) {
-          showSnackbar('画像サイズが大きすぎます。', 'error');
         } else {
           showSnackbar('ルーム情報の更新に失敗しました', 'error');
         }

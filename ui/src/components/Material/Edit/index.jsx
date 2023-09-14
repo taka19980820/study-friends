@@ -76,22 +76,10 @@ export default function EditMaterial({ open, materialId }) {
         publisher: "",
         pages: "",
         url: "",
+        image: '',
         tags: []
     })
     const [ snackbar, setSnackbar ] = React.useState({ open: false, message: '', severity: 'success' });
-
-    // const { register, setValue, handleSubmit, formState: { errors }} = useForm({
-    //   mode: "onChange",
-    //   defaultValues: {
-    //     material_name : "",
-    //     description: "",
-    //     author: "",
-    //     publisher: "",
-    //     pages: "",
-    //     url: "",
-    //     tags: []
-    //   },
-    // });
 
     React.useEffect(() => {
         const getTagData = async () => {
@@ -99,12 +87,6 @@ export default function EditMaterial({ open, materialId }) {
             if(materialReq.status === 200) {
                 const material = materialReq.data;
                 const materialTags = material.tags.map((tag) => tag.tag_name);
-                // setValue('material_name' , material.material_name);
-                // setValue('description' , material.description);
-                // setValue('author' , material.author ? material.author : '');
-                // setValue('publisher' , material.publisher ? material.publisher : '');
-                // setValue('pages' , material.pages ? material.pages : '');
-                // setValue('url' , material.url ? material.url : '');
                 setFormData({
                     material_name : material.material_name,
                     description: material.description,
@@ -122,9 +104,13 @@ export default function EditMaterial({ open, materialId }) {
 
     const handleSubmit = async (event) => {
       event.preventDefault();
-      const response = await RestAccess.put('/materials/' + materialId + '/edit',  formData, {
+      const requestData = {...formData};
+        requestData['_method'] = 'PUT';
+        // console.log(requestData);
+        // return ;
+      const response = await RestAccess.post('/materials/' + materialId + '/edit',  requestData, {
         headers: {
-        'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data',
       }})
       if(response.status === 200) {
         showSnackbar('教材情報を更新しました', 'success');
@@ -151,6 +137,18 @@ export default function EditMaterial({ open, materialId }) {
         });
     };
 
+  //画像アップロード
+  const [ fileName, setFileName ] = React.useState('');
+  const handleImgUpload = async (e) => {
+    const { name, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files[0],
+    });
+    setFileName(files[0]['name']);
+    e.target.value='';
+  }
+
   return  (
     <MainContainer open={open}>
         <DrawerHeader />
@@ -172,7 +170,22 @@ export default function EditMaterial({ open, materialId }) {
                                     onChange={handleChange}
                                     sx={{ mb: 2 }}
                                 />   
-                            <Typography>タグ(複数選択可)</Typography>
+                            <Typography>教材画像</Typography>
+                                <input
+                                    accept="image/*"
+                                    style={{ display: 'none' }}
+                                    id="img-upload"
+                                    type="file"
+                                    name="image"
+                                    onChange={handleImgUpload}
+                                />
+                            <Typography>{fileName}</Typography>
+                            <label htmlFor="img-upload">
+                                <Button variant="contained" component="span">
+                                    画像を選択
+                                </Button>
+                            </label>
+                            <Typography sx={{ mt: 2 }}>タグ(複数選択可)</Typography>
                             <TagManager 
                               callBack={handleSetTags}
                               tagSet={formData.tags}

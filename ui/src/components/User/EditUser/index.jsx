@@ -113,8 +113,6 @@ export default function EditUser({ open }) {
     if(response.status === 200) {
       showSnackbar('ユーザー情報を更新しました', 'success');
       router.push('/users/'+authUser.id);
-    } else if(response.data.errors.image) {
-      showSnackbar('画像サイズが大きすぎます。', 'error');
     } else {
       showSnackbar('ユーザー情報の更新に失敗しました', 'error');
     }
