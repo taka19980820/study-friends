@@ -346,9 +346,18 @@ export default function User({ open, userId }) {
         <DrawerHeader />
         <React.Fragment>
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                <Avatar sx={{ bgcolor: red[500], width: '120px', height:'120px', fontSize: '3.5rem' }} aria-label="recipe">
-                    {user.name.slice(0, 1)}
-                </Avatar>
+                {user.profileimg != null ?
+                    <Avatar
+                        alt={user.name.slice(0, 1)}
+                        src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + user.profileimg}
+                        sx={{ bgcolor: red[500], width: '120px', height:'120px', fontSize: '3.5rem' }}
+                        aria-label="recipe"
+                    />
+                    :
+                    <Avatar sx={{ bgcolor: red[500], width: '120px', height:'120px', fontSize: '3.5rem' }} aria-label="recipe">
+                        {user.name.slice(0, 1)}
+                    </Avatar>
+                }
             </Box>
 
             <Card>

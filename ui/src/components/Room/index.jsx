@@ -199,9 +199,18 @@ export default function Room({ open, roomId, isJoin }) {
                                             <Link style={{width: '100%'}} href={{ pathname: '/users/' + user.id, query: { id:  user.id } }} as={'/users/' + user.id}>
                                                 <ListItemButton>
                                                         <ListItemAvatar>
-                                                            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                                                {user.name.slice(0, 1)}
-                                                            </Avatar>
+                                                            {user.profileimg != null ? 
+                                                                <Avatar
+                                                                    alt={user.name.slice(0, 1)}
+                                                                    src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + user.profileimg}
+                                                                    sx={{ bgcolor: red[500] }}
+                                                                    aria-label="recipe"
+                                                                />
+                                                                :
+                                                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                                                                    {user.name.slice(0, 1)}
+                                                                </Avatar>
+                                                            }
                                                         </ListItemAvatar>
                                                         <ListItemText primary={user.name} />
                                                 </ListItemButton>

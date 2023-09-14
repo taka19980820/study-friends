@@ -28,7 +28,7 @@ class RoomController extends Controller
                 $query->select('tags.id', 'tags.tag_name');
             },
             'users' => function ($query) {
-                $query->select('users.id', 'users.name');
+                $query->select('users.id', 'users.name', 'profileimg');
             }
         ])->latest('updated_at')->get();
         $userId = auth()->id();
@@ -48,7 +48,7 @@ class RoomController extends Controller
         $room->load([
             'tags', 
             'users' => function($query) {
-                $query->select('users.id', 'users.name');
+                $query->select('users.id', 'users.name', 'profileimg');
             }
         ]);
         $userId = auth()->id();
@@ -57,7 +57,7 @@ class RoomController extends Controller
         $room->admin_user = $adminUser->name;
         $studyLogs = StudyLog::with([
             'user' => function ($query) {
-                $query->select('users.id','name');
+                $query->select('users.id','name', 'profileimg');
             },
             'myMaterial' => function ($query) {
                 $query->select('my_materials.id', 'my_materials.material_id');
@@ -66,7 +66,7 @@ class RoomController extends Controller
                 $query->select('materials.id','material_name');
             },
             'comments.user' => function ($query) {
-                $query->select('users.id', 'name');
+                $query->select('users.id', 'name', 'profileimg');
             },
             'favorites'
         ])

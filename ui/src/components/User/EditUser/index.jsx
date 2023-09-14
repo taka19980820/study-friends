@@ -78,6 +78,7 @@ export default function EditUser({ open }) {
       birthday : new Date().toISOString().split('T')[0],
       occupation : 0,
       introduction : '',
+      image: null,
       tags: []
     })
 
@@ -103,13 +104,17 @@ export default function EditUser({ open }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const response = await RestAccess.put('/users/' + authUser.id + '/edit',  formData, {
+    const requestData = {...formData};
+    requestData['_method'] = 'PUT';
+    const response = await RestAccess.post('/users/' + authUser.id + '/edit',  requestData, {
       headers: {
-      'Content-Type': 'application/json'
-    }})
+      'Content-Type': 'multipart/form-data',
+    }});
     if(response.status === 200) {
       showSnackbar('ユーザー情報を更新しました', 'success');
       router.push('/users/'+authUser.id);
+    } else if(response.data.errors.image) {
+      showSnackbar('画像サイズが大きすぎます。', 'error');
     } else {
       showSnackbar('ユーザー情報の更新に失敗しました', 'error');
     }
@@ -140,6 +145,19 @@ export default function EditUser({ open }) {
       [name]: value
     });
   };
+
+  const [ fileName, setFileName ] = React.useState('');
+
+  //画像アップロード
+  const handleImgUpload = async (e) => {
+    const { name, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files[0],
+    });
+    setFileName(files[0]['name']);
+    e.target.value='';
+  }
     
 
   return  (
@@ -163,7 +181,22 @@ export default function EditUser({ open }) {
                                     onChange={handleChange}
                                     sx={{ mb: 2 }}
                                 /> 
-                            <Typography>
+                            <Typography>プロフィール画像</Typography>
+                            <input
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                id="img-upload"
+                                type="file"
+                                name="image"
+                                onChange={handleImgUpload}
+                            />
+                            <Typography>{fileName}</Typography>
+                            <label htmlFor="img-upload">
+                                <Button variant="contained" component="span">
+                                    画像を選択
+                                </Button>
+                            </label>
+                            <Typography sx={{ mt:2 }}>
                                 生年月日
                             </Typography>
                             <TextField

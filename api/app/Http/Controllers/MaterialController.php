@@ -32,7 +32,7 @@ class MaterialController extends Controller
         $materials = $query->with([
             'tags',
             'materialComments.user' => function ($query) {
-                $query->select('users.id', 'name');
+                $query->select('users.id', 'name', 'profileimg');
             },
             'materialFavorites'
         ])->latest('updated_at')->get();

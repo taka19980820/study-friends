@@ -107,9 +107,18 @@ export default function Header({ open, handleDrawerOpen}) {
                 onClick={handleProfileMenuOpen}
                 color="inherit"
               >
-                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                  {authUser.name.slice(0, 1)}
-                </Avatar>
+                {authUser.profileimg != null ? 
+                  <Avatar
+                    alt={authUser.name.slice(0, 1)}
+                    src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + authUser.profileimg}
+                    sx={{ bgcolor: red[500] }}
+                    aria-label="recipe"
+                  />
+                  :
+                  <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                    {authUser.name.slice(0, 1)}
+                  </Avatar>
+                }
               </IconButton>
             </Box>
           </Toolbar>

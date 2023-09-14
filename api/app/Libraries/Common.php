@@ -3,6 +3,7 @@
 namespace App\Libraries;
 
 use Illuminate\Http\Request;
+use Image;
 
 class Common
 {
@@ -14,5 +15,17 @@ class Common
             return false;
         }
         return true;
+    }
+    
+    public function getSavedImgPath($image, $width, $height, $savePath) {
+        $filename = time() . '.' . $image->getClientOriginalExtension();
+        $destinationPath = public_path($savePath);
+        $resize_image = Image::make($image->getRealPath());
+        
+        $resize_image->resize($width, $height, function($constraint){
+            $constraint->aspectRatio();
+        })->save($destinationPath . $filename);
+
+        return $savePath . $filename;
     }
 }

@@ -101,9 +101,17 @@ export default function RoomMessage({ roomId, authUser, msg }) {
             }}
             >
             {message.user_id !== authUser.id && (
-                <Avatar sx={{ bgcolor: red[500], mr: 1 }} aria-label="recipe">
-                    {message.user.name.slice(0,1)}
-                </Avatar>
+                message.user.profileimg != null ?
+                    <Avatar
+                        alt={message.user.name.slice(0, 1)}
+                        src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + message.user.profileimg}
+                        sx={{ bgcolor: red[500] }}
+                        aria-label="recipe"
+                    />
+                    :
+                    <Avatar sx={{ bgcolor: red[500], mr: 1 }} aria-label="recipe">
+                        {message.user.name.slice(0,1)}
+                    </Avatar>
             )}
             <div
                 style={{

@@ -285,9 +285,18 @@ export default function MyMaterial({ removeMaterial, materialData, isLiked, cate
                                     <React.Fragment key={value.id}>
                                         <ListItem>
                                             <ListItemAvatar>
-                                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                                    {value.user.name.slice(0, 1)}
-                                                </Avatar>
+                                                {value.user.profileimg != null ? 
+                                                    <Avatar
+                                                        alt={value.user.name.slice(0, 1)}
+                                                        src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + value.user.profileimg}
+                                                        sx={{ bgcolor: red[500] }}
+                                                        aria-label="recipe"
+                                                    />
+                                                    :
+                                                    <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                                                        {value.user.name.slice(0, 1)}
+                                                    </Avatar>
+                                                }
                                             </ListItemAvatar>
                                             <ListItemContent sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                             <div style={{ flex: 1 }}>

@@ -150,9 +150,17 @@ export default function Log({ logData, isLiked, callback }) {
     <Card sx={{ mb: 5 }}>
         <CardHeader
             avatar={
-            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                {logData.user.name.slice(0, 1)}
-            </Avatar>
+                logData.user.profileimg != null ? 
+                    <Avatar
+                        alt={logData.user.name.slice(0, 1)}
+                        src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + logData.user.profileimg}
+                        sx={{ bgcolor: red[500] }}
+                        aria-label="recipe"
+                    />
+                    :
+                    <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                      {logData.user.name.slice(0, 1)}
+                    </Avatar>
             }
             action={ logData.user_id === authUser.id &&
                 <IconButton 
@@ -214,9 +222,18 @@ export default function Log({ logData, isLiked, callback }) {
                                 <React.Fragment key={value.id}>
                                     <ListItem>
                                         <ListItemAvatar>
-                                            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                                {value.user.name.slice(0, 1)}
-                                            </Avatar>
+                                            {value.user.profileimg != null ?
+                                                <Avatar
+                                                    alt={value.user.name.slice(0, 1)}
+                                                    src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + value.user.profileimg}
+                                                    sx={{ bgcolor: red[500] }}
+                                                    aria-label="recipe"
+                                                />
+                                                :
+                                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                                                    {value.user.name.slice(0, 1)}
+                                                </Avatar>
+                                            }
                                         </ListItemAvatar>
                                         <ListItemContent sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                         <div style={{ flex: 1 }}>

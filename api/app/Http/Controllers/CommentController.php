@@ -17,7 +17,7 @@ class CommentController extends Controller
             'comment' => $request->comment
         ]);
         $res = $newData->load(['user' => function ($query) {
-            $query->select('id', 'name');
+            $query->select('id', 'name', 'profileimg');
         }]);
         return response()->json($res, 200);
     }

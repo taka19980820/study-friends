@@ -23,6 +23,8 @@ class UserCollection extends ResourceCollection
                 'age' => $user->age,
                 'occupation' => $user->occupation,
                 'introduction' => $user->introduction,
+                'icon' => $user->icon,
+                'profileimg' => $user->profileimg,
                 'tags' => $user->tags,
             ];
         })->toArray();

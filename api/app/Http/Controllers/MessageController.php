@@ -16,7 +16,7 @@ class MessageController extends Controller
         }
         $messages = $room->messages()->with([
             'user' => function ($query) {
-                $query->select('users.id','name');
+                $query->select('users.id','name', 'profileimg');
             }
         ])->get();
         return response()->json($messages);

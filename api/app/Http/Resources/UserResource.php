@@ -22,6 +22,8 @@ class UserResource extends JsonResource
             'age' => $this->age,
             'occupation' => $this->occupation,
             'introduction' => $this->introduction,
+            'icon' => $this->icon,
+            'profileimg' => $this->profileimg,
             'tags' => $this->whenLoaded('tags'),
             'rooms' => $this->whenLoaded('rooms'),
             'materials' => $this->whenLoaded('materials'),

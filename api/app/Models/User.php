@@ -25,7 +25,9 @@ class User extends Authenticatable
         'birthday',
         'age',
         'occupation',
-        'introduction'
+        'introduction',
+        'icon',
+        'profileimg'
     ];
 
     /**

@@ -216,9 +216,18 @@ export default function Rooms({ open }) {
                 <Box display="flex" flexWrap="wrap" sx={{ pb: 2, gap: '3px' }}>
                     {roomDetailValues.users.map((user) => (
                         <ListItemAvatar key={user.id}>
-                            <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
-                                {user.name.slice(0, 1)}
-                            </Avatar>
+                            {user.profileimg != null ? 
+                                <Avatar
+                                    alt={user.name.slice(0, 1)}
+                                    src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + user.profileimg}
+                                    sx={{ bgcolor: red[500] }}
+                                    aria-label="recipe"
+                                />
+                                :
+                                <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
+                                    {user.name.slice(0, 1)}
+                                </Avatar>
+                            }
                         </ListItemAvatar>
                     ))}
                 </Box>

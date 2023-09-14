@@ -14,6 +14,7 @@ use App\Http\Resources\UserCollection;
 use App\Models\Material;
 use App\Models\MyMaterial;
 use App\Models\StudyLog;
+use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
@@ -42,7 +43,7 @@ class UserController extends Controller
             },
             'material.tags',
             'material.materialComments.user' => function ($query) {
-                $query->select('users.id', 'name');
+                $query->select('users.id', 'name', 'profileimg');
             },
             'material.materialFavorites', 
         ])
@@ -63,7 +64,7 @@ class UserController extends Controller
     public function getUserLogs(User $user) {
         $studyLogs = StudyLog::with([
             'user' => function ($query) {
-                $query->select('users.id','name');
+                $query->select('users.id','name', 'profileimg');
             },
             'myMaterial' => function ($query) {
                 $query->select('my_materials.id', 'my_materials.material_id');
@@ -72,7 +73,7 @@ class UserController extends Controller
                 $query->select('materials.id','material_name');
             },
             'comments.user' => function ($query) {
-                $query->select('users.id', 'name');
+                $query->select('users.id', 'name', 'profileimg');
             },
             'favorites'
             ])
@@ -97,6 +98,7 @@ class UserController extends Controller
                 'birthday' => 'date',
                 'occupation' => 'in:0,1,2,3',
                 'introduction' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
                 'tags' => 'array',
                 'tags.*' => 'string'
             ]);
@@ -105,9 +107,29 @@ class UserController extends Controller
                 return response()->json(['message' => 'Forbidden'], 403);
             }
 
-            return DB::transaction(function () use ($request, $user) {
+            //画像保存
+            $userIconImgPath = '';
+            $profileImgPath = '';
+            $image = $request->file('image');
+            if(isset($image)) {
+                $icon = $user->icon;
+                $profileimg = $user->profileimg;
+                try {
+                    $userIconImgPath = $this->common->getSavedImgPath($image, 40, 40, 'uploads/images/icons/');
+                    $profileImgPath = $this->common->getSavedImgPath($image, 250, 250, 'uploads/images/profile/');
+                } catch (\Exception $e) {
+                    return response()->json(['message' => $e->getMessage()], 500);
+                }
+                if(File::exists($icon)) {
+                    File::delete($icon);
+                }
+                if(File::exists($profileimg)) {
+                    File::delete($profileimg);
+                }
+            }
+
+            return DB::transaction(function () use ($request, $user, $userIconImgPath, $profileImgPath) {
                 //ユーザー情報更新
-                
                 $age = $user->age;
                 if(isset($request->birthday)) {
                     $age = Carbon::parse($request->birthday)->age;
@@ -118,7 +140,9 @@ class UserController extends Controller
                     'age' => $age,
                     'gender' => $request->gender ?? $user->gender,
                     'occupation' => $request->occupation ?? $user->occupation,
-                    'introduction' => $request->introduction
+                    'introduction' => $request->introduction,
+                    'icon' => $userIconImgPath != '' ? $userIconImgPath : $user->icon,
+                    'profileimg' => $profileImgPath != '' ? $profileImgPath : $user->profileimg
                 ]);
 
                 //タグ更新

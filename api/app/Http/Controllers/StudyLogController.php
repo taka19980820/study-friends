@@ -12,7 +12,7 @@ class StudyLogController extends Controller
     public function index() {
         $studyLogs = StudyLog::with([
             'user' => function ($query) {
-                $query->select('users.id','name');
+                $query->select('users.id','name', 'profileimg');
             },
             'myMaterial' => function ($query) {
                 $query->select('my_materials.id', 'my_materials.material_id');
@@ -21,7 +21,7 @@ class StudyLogController extends Controller
                 $query->select('materials.id','material_name');
             },
             'comments.user' => function ($query) {
-                $query->select('users.id', 'name');
+                $query->select('users.id', 'name', 'profileimg');
             },
             'favorites'
         ])->latest('study_date')->get();
