@@ -105,7 +105,6 @@ export default function RoomMessage({ roomId, authUser, msg }) {
                     <Avatar
                         alt={message.user.name.slice(0, 1)}
                         src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + message.user.profileimg}
-                        sx={{ bgcolor: red[500] }}
                         aria-label="recipe"
                     />
                     :

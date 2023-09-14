@@ -350,7 +350,7 @@ export default function User({ open, userId }) {
                     <Avatar
                         alt={user.name.slice(0, 1)}
                         src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + user.profileimg}
-                        sx={{ bgcolor: red[500], width: '120px', height:'120px', fontSize: '3.5rem' }}
+                        sx={{ width: '120px', height:'120px', fontSize: '3.5rem' }}
                         aria-label="recipe"
                     />
                     :

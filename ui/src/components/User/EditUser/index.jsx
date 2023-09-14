@@ -146,9 +146,9 @@ export default function EditUser({ open }) {
     });
   };
 
-  const [ fileName, setFileName ] = React.useState('');
-
+  
   //画像アップロード
+  const [ fileName, setFileName ] = React.useState('');
   const handleImgUpload = async (e) => {
     const { name, files } = e.target;
     setFormData({

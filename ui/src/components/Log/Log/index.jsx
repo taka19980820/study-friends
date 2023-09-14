@@ -154,7 +154,6 @@ export default function Log({ logData, isLiked, callback }) {
                     <Avatar
                         alt={logData.user.name.slice(0, 1)}
                         src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + logData.user.profileimg}
-                        sx={{ bgcolor: red[500] }}
                         aria-label="recipe"
                     />
                     :
@@ -226,7 +225,6 @@ export default function Log({ logData, isLiked, callback }) {
                                                 <Avatar
                                                     alt={value.user.name.slice(0, 1)}
                                                     src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + value.user.profileimg}
-                                                    sx={{ bgcolor: red[500] }}
                                                     aria-label="recipe"
                                                 />
                                                 :

@@ -72,24 +72,29 @@ export default function MakeRoom({ open }) {
     const [ formData, setFormData ] = React.useState({
         room_name: '',
         description: '',
+        image: null,
         tags: []
     })
     const router = useRouter();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        // console.log(formData);
+        // return;
         const response = await RestAccess.post('/rooms', formData, {
           headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }})
         if(response.status === 200) {
           showSnackbar('ルームを作成しました', 'success');
           router.push('/rooms');
+        } else if (response.data.errors.image != undefined) {
+          showSnackbar('画像サイズが大きすぎます。', 'error');
         } else {
           showSnackbar(response.status.message, 'error');
         }
   
-      }
+    }
 
     //タグ選択コールバック
   const handleSetTags = (newTags) => {
@@ -99,13 +104,25 @@ export default function MakeRoom({ open }) {
       });
   };
 
-      const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-          ...formData,
-          [name]: value
-        });
-      };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  //画像アップロード
+  const [ fileName, setFileName ] = React.useState('');
+  const handleImgUpload = async (e) => {
+    const { name, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files[0],
+    });
+    setFileName(files[0]['name']);
+    e.target.value='';
+  }
 
   return  (
     <MainContainer open={open}>
@@ -126,7 +143,22 @@ export default function MakeRoom({ open }) {
                             fullWidth
                             sx={{ mb: 2 }}
                         />
-                        <Typography>タグ選択(複数選択可)</Typography>
+                        <Typography>ルームアイコン</Typography>
+                            <input
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                id="img-upload"
+                                type="file"
+                                name="image"
+                                onChange={handleImgUpload}
+                            />
+                        <Typography>{fileName}</Typography>
+                        <label htmlFor="img-upload">
+                            <Button variant="contained" component="span">
+                                画像を選択
+                            </Button>
+                        </label>
+                        <Typography sx={{ mt: 2 }}>タグ選択(複数選択可)</Typography>
                         <TagManager 
                             callBack={handleSetTags}
                             tags={formData.tags}

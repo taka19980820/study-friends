@@ -7,9 +7,15 @@ use App\Models\StudyLog;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Libraries\Common;
+use Illuminate\Support\Facades\File;
 
 class RoomController extends Controller
 {
+    private $common;
+    public function __construct() {
+        $this->common = new Common();
+    }
 
     public function index(Request $request) {
         $query = Room::query();
@@ -101,14 +107,27 @@ class RoomController extends Controller
         $request->validate([
             "room_name" => "required|string|max:255",
             "description" => "required|string",
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'tags' => 'array',
             'tags.*' => 'string'
         ]);
 
-        return DB::transaction(function () use ($request) {            
+        //画像保存
+        $roomIconImgPath = '';
+        $image = $request->file('image');
+        if(isset($image)) {
+            try {
+                $roomIconImgPath = $this->common->getSavedImgPath($image, 250, 250, 'uploads/images/roomicons/');
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+        }
+
+        return DB::transaction(function () use ($request, $roomIconImgPath) {            
             $response = $room = Room::create([
                 'room_name' => $request->room_name,
                 'description' => $request->description,
+                'room_icon' => $roomIconImgPath != '' ? $roomIconImgPath : null,
                 'user_id' => auth()->id(),
             ]);
 
@@ -132,6 +151,7 @@ class RoomController extends Controller
         $request->validate([
             "room_name" => "string|max:255",
             "description" => "string",
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
             'tags' => 'array',
             'tags.*' => 'string'
         ]);
@@ -140,10 +160,28 @@ class RoomController extends Controller
             return response()->json(['message' => '権限がありません'], 403);
         }
 
-        return DB::transaction(function () use ($request, $room) {
+        //画像保存
+        $roomIconImgPath = '';
+        $image = $request->file('image');
+        if(isset($image)) {
+            var_dump('北で');
+            $roomIcon = $room->room_icon;
+            try {
+                $roomIconImgPath = $this->common->getSavedImgPath($image, 200, 200, 'uploads/images/roomicons/');
+            } catch (\Exception $e) {
+                return response()->json(['message' => $e->getMessage()], 500);
+            }
+            if(File::exists($roomIcon)) {
+                File::delete($roomIcon);
+            }
+        }
+
+        return DB::transaction(function () use ($request, $room, $roomIconImgPath) {
+            var_dump($roomIconImgPath);
             $room->update([
                 'room_name' => $request->room_name ?? $room->room_name,
-                'description' => $request->description ?? $room->description
+                'description' => $request->description ?? $room->description,
+                'room_icon' => $roomIconImgPath != '' ? $roomIconImgPath : $room->room_icon,
             ]);
 
             //タグ更新

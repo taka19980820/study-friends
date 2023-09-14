@@ -158,24 +158,7 @@ export default function Rooms({ open }) {
         <Collapse in={expanded} timeout="auto" unmountOnExit>
             <CardContent>                
                 <Box>
-                    {/* <TextField sx={{mb: 2}} fullWidth={true} id="outlined-basic" label="キーワードで検索" variant="outlined" /> */}
-                    {/* <SearchBar data={searchData} /> */}
-                        <TagManager callBack={searchRoom}/>
-                    {/* <List>
-                    {Object.keys(tags).map((category) => {
-                        return (
-                            <ListItem sx={{ display: 'block' }} key={category}>
-                                <Typography component="h1">{category}</Typography>
-                                <Box display="flex" flexWrap="wrap" sx={{ pb: 2, gap: '3px' }}>
-                                {tags[category].map((value) => {
-                                    return (
-                                        <Chip key={value.tagId} label={value.tagName} onClick={() => handleTagSelected(value.tagId)} color={tagSelected === value.tagId ? 'primary' : 'default'} /> 
-                                )})}
-                                </Box>
-                            </ListItem>
-                        )
-                    })}
-                    </List> */}
+                    <TagManager callBack={searchRoom}/>
                 </Box>
             </CardContent>
         </Collapse>
@@ -186,9 +169,17 @@ export default function Rooms({ open }) {
                     <ListItem key={value.id} onClick={() => handleRoomDetailOpen(value)} sx={{ border: '1px solid', borderColor: '#C0C0C0', mb: 3, padding: 0 }}>
                         <ListItemButton>
                             <ListItemAvatar>
+                                {value.room_icon != null ? 
+                                <Avatar
+                                    alt={value.room_name.slice(0, 1)}
+                                    src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + value.room_icon}
+                                    aria-label="recipe"
+                                />
+                                :
                                 <Avatar sx={{ bgcolor: red[500] }} aria-label="recipe">
                                     {value.room_name.slice(0,1)}
                                 </Avatar>
+                            }
                             </ListItemAvatar>     
                             <Box>
                                 <Typography>{value.is_join ? value.room_name + '(参加中)' : value.room_name}</Typography>
@@ -220,7 +211,6 @@ export default function Rooms({ open }) {
                                 <Avatar
                                     alt={user.name.slice(0, 1)}
                                     src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + user.profileimg}
-                                    sx={{ bgcolor: red[500] }}
                                     aria-label="recipe"
                                 />
                                 :
@@ -245,18 +235,6 @@ export default function Rooms({ open }) {
                     <Grid item xs={4}>最終更新</Grid>
                     <Grid item xs={8} sx={{ textAlign: 'right' }}>{dateTimeHandler.formatDate(roomDetailValues.updated_at, 'YYYY年MM月DD日 HH時MM分SS秒')}</Grid>
                 </Grid>
-                {/* <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
-                    <Grid item xs={4}>年齢制限</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{roomDetailValues.ageLimit != null ? roomDetailValues.ageLimit + '以上' : '制限なし'}</Grid>
-                </Grid>
-                <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
-                    <Grid item xs={4}>性別制限</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{roomDetailValues.sexLimit != null ? roomDetailValues.sexLimit + 'のみ': '制限なし'}</Grid>
-                </Grid>
-                <Grid container sx={{ borderBottom: '1px solid', borderColor: '#DDDDDD' }}>
-                    <Grid item xs={4}>人数制限</Grid>
-                    <Grid item xs={8} sx={{ textAlign: 'right' }}>{roomDetailValues.numList != null ? roomDetailValues.numLimit + 'まで' : '制限なし'}</Grid>
-                </Grid> */}
             </DialogContent>
 
             <DialogActions>

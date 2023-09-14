@@ -203,7 +203,6 @@ export default function Room({ open, roomId, isJoin }) {
                                                                 <Avatar
                                                                     alt={user.name.slice(0, 1)}
                                                                     src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + user.profileimg}
-                                                                    sx={{ bgcolor: red[500] }}
                                                                     aria-label="recipe"
                                                                 />
                                                                 :

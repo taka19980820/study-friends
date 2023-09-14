@@ -13,6 +13,7 @@ class Room extends Model
         'room_name',
         'description',
         'user_id',
+        'room_icon'
     ];
 
     public function tags() {

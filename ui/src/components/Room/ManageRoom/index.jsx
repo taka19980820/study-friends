@@ -72,6 +72,7 @@ export default function ManageRoom({ open, roomId }) {
     const [ formData, setFormData ] = React.useState({
         room_name: '',
         description: '',
+        image: null,
         tags: []
     })
     const router = useRouter();
@@ -148,26 +149,44 @@ export default function ManageRoom({ open, roomId }) {
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const response = await RestAccess.put('/rooms/' + roomId + '/edit',  formData, {
+        const requestData = {...formData};
+        requestData['_method'] = 'PUT';
+        // console.log(requestData);
+        // return ;
+        const response = await RestAccess.post('/rooms/' + roomId + '/edit',  requestData, {
           headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }})
         if(response.status === 200) {
           showSnackbar('ルーム情報を更新しました', 'success');
           router.back();
+        } else if(response.data.errors.image) {
+          showSnackbar('画像サイズが大きすぎます。', 'error');
         } else {
           showSnackbar('ルーム情報の更新に失敗しました', 'error');
         }
   
-      }
+    }
 
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  //画像アップロード
+  const [ fileName, setFileName ] = React.useState('');
+  const handleImgUpload = async (e) => {
+    const { name, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files[0],
+    });
+    setFileName(files[0]['name']);
+    e.target.value='';
+  }
   
     
     
@@ -193,7 +212,22 @@ export default function ManageRoom({ open, roomId }) {
                                 fullWidth
                                 sx={{ mb: 2 }}
                             />
-                            <Typography>タグ選択</Typography>
+                            <Typography>ルームアイコン</Typography>
+                            <input
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                id="img-upload"
+                                type="file"
+                                name="image"
+                                onChange={handleImgUpload}
+                            />
+                            <Typography>{fileName}</Typography>
+                            <label htmlFor="img-upload">
+                                <Button variant="contained" component="span">
+                                    画像を選択
+                                </Button>
+                            </label>
+                            <Typography sx={{ mt: 2 }}>タグ選択</Typography>
                             <TagManager 
                                 callBack={handleSetTags}
                                 tagSet={formData.tags}

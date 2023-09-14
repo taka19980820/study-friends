@@ -111,7 +111,6 @@ export default function Header({ open, handleDrawerOpen}) {
                   <Avatar
                     alt={authUser.name.slice(0, 1)}
                     src={process.env.NEXT_PUBLIC_API_ENDPOINT + '/' + authUser.profileimg}
-                    sx={{ bgcolor: red[500] }}
                     aria-label="recipe"
                   />
                   :
