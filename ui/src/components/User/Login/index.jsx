@@ -42,33 +42,59 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 
 export default function Login({ open }) {
-    const router = useRouter();
-    const { setAuthUser } = useContext(AuthContext);
-    const { showSnackbar } = useSnackbar();
-    const { register, handleSubmit, formState: { errors } } = useForm();
+  const router = useRouter();
+  const { setAuthUser } = useContext(AuthContext);
+  const { showSnackbar } = useSnackbar();
+  const { register, handleSubmit, formState: { errors } } = useForm();
 
-    const onSubmit = async (data) => {
-      // CSRFトークンを取得
-      await RestAccess.get('/sanctum/csrf-cookie');
+  const onSubmit = async (data) => {
+    // CSRFトークンを取得
+    await RestAccess.get('/sanctum/csrf-cookie');
 
-      // ログイン処理
-      const response = await RestAccess.post('/login', data, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.status === 200) {
-        const { data: user } = response;
-        setAuthUser(user);
-        showSnackbar('ログインしました');
-      } else if (response.status === 422) {
-        showSnackbar('認証に失敗しました', 'error');
-      } else {
-        showSnackbar('ログインに失敗しました', 'error');
+    // ログイン処理
+    const response = await RestAccess.post('/login', data, {
+      headers: {
+        'Content-Type': 'application/json'
       }
-  
+    });
+    
+    if (response.status === 200) {
+      const { data: user } = response;
+      setAuthUser(user);
+      showSnackbar('ログインしました');
+    } else if (response.status === 422) {
+      showSnackbar('認証に失敗しました', 'error');
+    } else {
+      showSnackbar('ログインに失敗しました', 'error');
     }
+
+  }
+
+  const guestLogin = async () => {
+    const requestData = {
+      email: "guest@gmail.com",
+      password: "guestuser"
+    };
+    // CSRFトークンを取得
+    await RestAccess.get('/sanctum/csrf-cookie');
+
+    // ログイン処理
+    const response = await RestAccess.post('/login', requestData, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.status === 200) {
+      const { data: user } = response;
+      setAuthUser(user);
+      showSnackbar('ログインしました');
+    } else if (response.status === 422) {
+      showSnackbar('認証に失敗しました', 'error');
+    } else {
+      showSnackbar('ログインに失敗しました', 'error');
+    }
+  }
     
 
   return  (
@@ -119,6 +145,7 @@ export default function Login({ open }) {
                         </Button>
                     </form>
                     <Button sx={{fontWeight: 'bold', mt: 2}}><Link href="/register">新規登録はこちら</Link></Button>
+                    <Button sx={{fontWeight: 'bold', mt: 2}} onClick={guestLogin}>ゲストユーザーでログインする</Button>
                     
             </CardContent>
         </Card>

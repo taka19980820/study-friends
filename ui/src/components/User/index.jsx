@@ -391,9 +391,11 @@ export default function User({ open, userId }) {
                     {/* 自分の場合 */}
                     {authUser.id == user.id && 
                         <>
-                            <Link href={'/users/edit'} >
-                                <Button sx={{ fontWeight: 'bold' }}>プロフィール編集</Button>
-                            </Link>
+                            {authUser.email != 'guest@gmail.com' && 
+                                <Link href={'/users/edit'} >
+                                    <Button sx={{ fontWeight: 'bold' }}>プロフィール編集</Button>
+                                </Link>
+                            }
                             <Button onClick={() => setCategoryEditDialogFlag(true)} sx={{ fontWeight: 'bold' }}>カテゴリ編集</Button>
                         </>
                     }

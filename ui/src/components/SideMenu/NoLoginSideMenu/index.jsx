@@ -16,6 +16,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import LoginIcon from '@mui/icons-material/Login';
+import InfoIcon from '@mui/icons-material/Info';
 import Link from 'next/link'
 
 
@@ -50,6 +51,11 @@ export default function NoLoginSideMenu({ open, handleDrawerClose }) {
       display: 'ログイン',
       icon: <LoginIcon />,
       link: '/login'
+    },
+    {
+      display: 'スタ友について',
+      icon: <InfoIcon />,
+      link: '/about'
     },
   ];
 

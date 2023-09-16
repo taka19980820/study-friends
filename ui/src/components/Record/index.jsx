@@ -651,7 +651,7 @@ export default function Record({ open, userId }) {
                             </Card>                       
                         </TabPanel>
                         {/* 週別 */}
-                        <TabPanel value="2" sx={{ p: 2 }}>
+                        <TabPanel value="2" sx={{ p: 0 }}>
                             <Card>
                                 <CardContent>
                                     <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center' }}>

@@ -14,6 +14,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import InfoIcon from '@mui/icons-material/Info';
 import Link from 'next/link';
 import { AuthContext } from '../../context/Auth/AuthContext';
 
@@ -54,6 +55,11 @@ export default function SideMenu({ open, handleDrawerClose }) {
       display: '教材一覧',
       icon: <BorderColorIcon />,
       url: '/materials',
+    },
+    {
+      display: 'スタ友について',
+      icon: <InfoIcon />,
+      url: '/about'
     },
   ];
 

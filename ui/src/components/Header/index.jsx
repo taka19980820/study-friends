@@ -139,7 +139,9 @@ export default function Header({ open, handleDrawerOpen}) {
           onClose={handleMenuClose}
         >
           <MenuItem onClick={handleMenuClose}><Link href={"/users/" + authUser.id}>プロフィール</Link></MenuItem>
-          <MenuItem onClick={handleMenuClose}><Link href="/account">アカウント</Link></MenuItem>
+          {authUser.email != "guest@gmail.com" && 
+            <MenuItem onClick={handleMenuClose}><Link href="/account">アカウント</Link></MenuItem>
+          }
           <MenuItem onClick={handleLogout}>ログアウト</MenuItem>
         </Menu>
       </>
