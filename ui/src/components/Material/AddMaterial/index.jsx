@@ -1,8 +1,5 @@
-// Main.js
 import React from 'react';
 import { useTheme } from '@mui/material/styles';
-import { styled } from '@mui/material/styles';
-import { useForm, Controller } from 'react-hook-form';
 import { Card, CardHeader, CardContent, TextField, Button, Select, MenuItem } from '@mui/material';
 import Typography from '@mui/joy/Typography';
 import Box from '@mui/material/Box';
@@ -13,35 +10,6 @@ import { useRouter } from 'next/router'
 import { AuthContext } from '../../../context/Auth/AuthContext';
 import CustomSnackbar from '../../SnackBar';
 import { useSnackbar } from '../../../context/SnackbarContext';
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
 
 //タグ選択用スタイル
 const ITEM_HEIGHT = 48;
@@ -64,7 +32,7 @@ function getStyles(name, personName, theme) {
   }
 
 
-export default function AddMaterial({ open }) {
+export default function AddMaterial() {
     const router = useRouter();
     const { authUser } = useContext(AuthContext);
     const { showSnackbar } = useSnackbar();    
@@ -161,9 +129,7 @@ export default function AddMaterial({ open }) {
   }
 
   return  (
-    
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         {display &&
           <>
             <Card>
@@ -297,6 +263,6 @@ export default function AddMaterial({ open }) {
           severity={snackbar.severity}
           message={snackbar.message}
         />
-    </MainContainer>
+    </>
     )
 };

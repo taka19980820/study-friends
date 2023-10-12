@@ -1,5 +1,3 @@
-
-
 //時間表示
 export const formatTime = (time) => {
     return time < 60 ? time + '分' : Math.floor(time / 60) + '時間' + (time % 60) + '分'; 

@@ -1,4 +1,3 @@
-// Main.js
 import React from 'react';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/joy/Typography';
@@ -32,36 +31,7 @@ import * as RestAccess from '../../utils/RestAccess';
 import * as dateTimeHandler from '../../utils/dateTimeHandler';
 import Log from '../Log/Log';
 
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-export default function Room({ open, roomId, isJoin }) {
+export default function Room({ roomId }) {
     const { authUser } = useContext(AuthContext);
     const [value, setValue] = React.useState('1');
     const [ display, setDisplay ] = React.useState(false);
@@ -75,13 +45,9 @@ export default function Room({ open, roomId, isJoin }) {
     const [ roomData, setRoomData ] = React.useState({});
     const [ roomUsers, setRoomUsers ] = React.useState([]);
     const [ messages, setMessages ] = React.useState([]);
-      const [ roomStudyLogs, setRoomStudyLogs ] = React.useState([])
+    const [ roomStudyLogs, setRoomStudyLogs ] = React.useState([])
 
     useEffect(() => {
-        // if(!isJoin) {
-        //     showSnackbar('アクセスできません', 'error');
-        //     router.push('/rooms');
-        // }
         const getRoomData = async () => {
             const room = await RestAccess.get('/rooms/' + roomId);
             const messages = await RestAccess.get('/rooms/' + roomId + '/messages');
@@ -89,8 +55,6 @@ export default function Room({ open, roomId, isJoin }) {
                 const roomDataSet = room.data.room;
                 const logSet = room.data.studyLogs;
                 const users = [...roomDataSet.users];
-                // const tagSuggestions = tagSets.map((tag) => tag.tag_name);
-                // const roomTags = roomData.tags.map((tag) => tag.tag_name);
                 setRoomData({
                     id: roomDataSet.id,
                     room_name: roomDataSet.room_name,
@@ -103,7 +67,6 @@ export default function Room({ open, roomId, isJoin }) {
                 setRoomUsers(roomDataSet.users);
                 setRoomStudyLogs(logSet);
                 setMessages(messages.data);
-                // setTagSuggestions(tagSuggestions);
                 setDisplay(true);
             } else {
                 showSnackbar('ルーム情報の取得に失敗しました', 'error');
@@ -115,10 +78,6 @@ export default function Room({ open, roomId, isJoin }) {
 
     //削除確認ダイアログ
     const [dialogOpen, setDialogOpen] = React.useState(false);
-    // const handleDialogOpen = () => {
-    //     setAnchorEl(null);
-    //     setDialogOpen(true);
-    // };
     const handleDialogClose = () => {
         setDialogOpen(false);
     };
@@ -162,7 +121,6 @@ export default function Room({ open, roomId, isJoin }) {
         if(response.status == 200) {
             showSnackbar('削除しました。')
             const response = await RestAccess.get('/rooms/' + roomId);
-            // const newLogs = await RestAccess.get('/study-logs'); 
             setRoomStudyLogs(response.data.studyLogs);
         }  else {
             showSnackbar('削除できませんでした', 'error');
@@ -171,8 +129,7 @@ export default function Room({ open, roomId, isJoin }) {
 
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         {display && 
             <>
                 <h2>{roomData.room_name}</h2>
@@ -274,17 +231,12 @@ export default function Room({ open, roomId, isJoin }) {
                                     </Button>
                                     }
                                 </Stack>
-                                    
-                                {/* </CardActions> */}
-                            {/* </Card> */}
                         </TabPanel>
-
                     </TabContext>
                 </Box>
                 {renderDialog}
             </>
         }
-
-    </MainContainer>
+    </>
     )
 };

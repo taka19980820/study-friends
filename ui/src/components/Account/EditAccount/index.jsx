@@ -1,21 +1,18 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
-import { Card, CardHeader, CardContent, Button, TextField, Typography } from '@mui/material';
+import { Card, CardContent, Button, TextField, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 import { AuthContext } from '@/context/Auth/AuthContext';
 import { useSnackbar } from '@/context/SnackbarContext';
-import { useState, useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import * as RestAccess from '@/utils/RestAccess';
 import { useForm } from 'react-hook-form';
-import Link from 'next/link'
 
 export default function EditAccount({ accountData, changeEmail }) {
-    const { authUser, setAuthUser } = useContext(AuthContext);
+    const { setAuthUser } = useContext(AuthContext);
     const { showSnackbar } = useSnackbar(); 
     const router = useRouter();
     const { register, handleSubmit, formState: { errors }} = useForm({

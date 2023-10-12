@@ -1,7 +1,4 @@
-// Main.js
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
-import { styled } from '@mui/material/styles';
 import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
 import Typography from '@mui/joy/Typography';
 import Box from '@mui/material/Box';
@@ -9,64 +6,13 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
 import { useRouter } from 'next/router';
-import { useContext } from 'react';
-import { AuthContext } from '../../../context/Auth/AuthContext';
 import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import TagManager from '../../Tag/TagManager';
-
-
-
 import Stack from '@mui/material/Stack';
 
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-//タグ選択用スタイル
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-
-export default function ManageRoom({ open, roomId }) {
-    //タグ選択
-    const theme = useTheme();
-    const { authUser } = useContext(AuthContext);
+export default function ManageRoom({ roomId }) {
     const { showSnackbar } = useSnackbar();    
     const [ display, setDisplay ] = React.useState(false);
     const [ formData, setFormData ] = React.useState({
@@ -151,8 +97,6 @@ export default function ManageRoom({ open, roomId }) {
         event.preventDefault();
         const requestData = {...formData};
         requestData['_method'] = 'PUT';
-        // console.log(requestData);
-        // return ;
         const response = await RestAccess.post('/rooms/' + roomId + '/edit',  requestData, {
           headers: {
           'Content-Type': 'multipart/form-data'
@@ -186,12 +130,8 @@ export default function ManageRoom({ open, roomId }) {
     e.target.value='';
   }
   
-    
-    
-    
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         { display &&
         <>
         <Card>
@@ -277,6 +217,6 @@ export default function ManageRoom({ open, roomId }) {
         {renderDialog}
         </>
         }       
-    </MainContainer>
+    </>
     )
 };

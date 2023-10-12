@@ -1,51 +1,12 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
-import { Card, CardHeader, CardContent, Button, TextField, Typography } from '@mui/material';
-import { useRouter } from 'next/router';
-import { AuthContext } from '@/context/Auth/AuthContext';
+import { Card, CardContent, Button, TextField, Typography } from '@mui/material';
 import { useSnackbar } from '@/context/SnackbarContext';
-import { useState, useContext, useEffect } from 'react';
+import { useState } from 'react';
 import * as RestAccess from '@/utils/RestAccess';
 import { useForm } from 'react-hook-form';
-import Link from 'next/link'
-
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
 
 export default function Password() {
-    const { authUser, setAuthUser } = useContext(AuthContext);
     const { showSnackbar } = useSnackbar(); 
-    const [ display, setDisplay ] = useState(false);
-    const router = useRouter();
 
     const onSubmit = async (data) => {
         const response = await RestAccess.post('/change-password', data, {
@@ -77,7 +38,7 @@ export default function Password() {
 
   const { register, setValue, handleSubmit, formState: { errors }, watch } = useForm();
 
-    const new_password = watch("new_password");
+  const new_password = watch("new_password");
 
   return  (
         <Card>

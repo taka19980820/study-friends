@@ -1,5 +1,4 @@
 import React from 'react';
-import { styled } from '@mui/material/styles';
 import Typography from '@mui/joy/Typography';
 import CardContent from '@mui/material/CardContent';
 import Collapse from '@mui/material/Collapse';
@@ -16,10 +15,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Tab from '@mui/material/Tab';
-import TabContext from '@mui/lab/TabContext';
-import TabList from '@mui/lab/TabList';
-import TabPanel from '@mui/lab/TabPanel';
 import PersonIcon from '@mui/icons-material/Person';
 import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
@@ -27,7 +22,6 @@ import Chip from '@mui/material/Chip';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import Link from 'next/link'
-import SearchBar from '../../Search/KeyWordSearch';
 import { useEffect, useState, useContext } from 'react';
 import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar  } from '../../../context/SnackbarContext';
@@ -36,44 +30,13 @@ import * as dateTimeHandler from '../../../utils/dateTimeHandler';
 import { useRouter } from 'next/router';
 import TagManager from '../../Tag/TagManager';
 
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-
-export default function Rooms({ open }) {
+export default function Rooms() {
     const [roomDetailOpen, setRoomDetailOpen] = React.useState(false);
     const router = useRouter();
     const [roomDetailValues, setDetailValues] = React.useState({
         id: null,
         user_id: null,
         room_name: '',
-        // numMember: [],
         description: '',
         users: [],
         tags: [],
@@ -84,9 +47,6 @@ export default function Rooms({ open }) {
         setRoomDetailOpen(true);
     };
     const handleRoomDetailClose = () => {
-        // setDetailValues({
-
-        // })
         setRoomDetailOpen(false);
     };
     //コメント欄開閉制御
@@ -95,11 +55,6 @@ export default function Rooms({ open }) {
         setExpanded(!expanded);
     };
     //コメント欄開閉制御ここまで
-    //タグ検索
-    const [tagSelected, setTagSelected] = React.useState(null);
-    const handleTagSelected = (tagId) => {
-        setTagSelected(tagId);
-    };
 
     const { authUser } = useContext(AuthContext);
     const [ rooms, setRooms ] = useState([]);
@@ -115,8 +70,6 @@ export default function Rooms({ open }) {
         }
         getRooms();
     }, [])
-
-    const searchData = ['Apple', 'Banana', 'Cherry', 'Date', 'Fig', 'Grape', 'Honeydew', 'PHP', 'Laravel', 'Python'];
 
     const joinRoom = async (roomId) => {
         const response = await RestAccess.post('/rooms/' + roomId + '/join');
@@ -151,8 +104,7 @@ export default function Rooms({ open }) {
     
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         <h2>ルーム一覧</h2>
         <Button onClick={handleExpandClick} variant="text" sx={{ fontSize: '1.2rem' }}>ルーム検索</Button>
         <Collapse in={expanded} timeout="auto" unmountOnExit>
@@ -276,7 +228,6 @@ export default function Rooms({ open }) {
                 ルーム作成
             </Fab>       
         </Link>
-
-    </MainContainer>
+    </>
     )
 };

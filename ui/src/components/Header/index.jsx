@@ -38,7 +38,6 @@ const AppBar = styled(MuiAppBar, {
 export default function Header({ open, handleDrawerOpen}) {
   const { authUser, setAuthUser } = React.useContext(AuthContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
   const { showSnackbar } = useSnackbar(); 
   const router = useRouter();
 
@@ -48,13 +47,8 @@ export default function Header({ open, handleDrawerOpen}) {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleMobileMenuClose = () => {
-    setMobileMoreAnchorEl(null);
-  };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
-    handleMobileMenuClose();
   };
 
   const handleLogout = async (e) => {
@@ -90,7 +84,6 @@ export default function Header({ open, handleDrawerOpen}) {
               variant="h6"
               noWrap
               component="div"
-              sx={{ display: { xs: 'none', sm: 'block' } }}
             >
               スタ友
             </Typography>

@@ -1,7 +1,4 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
-import { useState } from 'react';
 import { Card, CardHeader, CardContent, TextField, Button, Grid } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -15,58 +12,7 @@ import { AuthContext } from '../../../context/Auth/AuthContext';
 import CustomSnackbar from '../../SnackBar';
 import { useSnackbar } from '../../../context/SnackbarContext';
 
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-
-//タグ選択用スタイル
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-}
-
-
-export default function EditUser({ open }) {
+export default function EditUser() {
     const { authUser } = React.useContext(AuthContext);
     const router = useRouter();
     const [ snackbar, setSnackbar ] = React.useState({ open: false, message: '', severity: 'success' });
@@ -159,8 +105,7 @@ export default function EditUser({ open }) {
     
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         { display &&
           <>
             <Card>
@@ -276,6 +221,6 @@ export default function EditUser({ open }) {
           severity={snackbar.severity}
           message={snackbar.message}
         />
-    </MainContainer>
+    </>
     )
 };

@@ -1,73 +1,15 @@
-// Main.js
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
-import { styled } from '@mui/material/styles';
-import { useForm, Controller } from 'react-hook-form';
-import { Card, CardHeader, CardContent, TextField, Button, Select, MenuItem } from '@mui/material';
+import { Card, CardHeader, CardContent, TextField, Button } from '@mui/material';
 import Typography from '@mui/joy/Typography';
 import Box from '@mui/material/Box';
 import TagManager from '../../Tag/TagManager';
 import * as RestAccess from '../../../utils/RestAccess';
-import { useContext } from 'react';
 import { useRouter } from 'next/router'
-import { AuthContext } from '../../../context/Auth/AuthContext';
 import { useSnackbar } from '../../../context/SnackbarContext';
 
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-//タグ選択用スタイル
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
-function getStyles(name, personName, theme) {
-    return {
-      fontWeight:
-        personName.indexOf(name) === -1
-          ? theme.typography.fontWeightRegular
-          : theme.typography.fontWeightMedium,
-    };
-  }
-
-
-export default function EditMaterial({ open, materialId }) {
+export default function EditMaterial({ materialId }) {
     const router = useRouter();
-    const { authUser } = useContext(AuthContext);
     const { showSnackbar } = useSnackbar();    
-    const [ tagSuggestions, setTagSuggestions ] = React.useState([]);
     const [ display, setDisplay ] = React.useState(false);
     const [ formData, setFormData ] = React.useState({
         material_name : "",
@@ -79,7 +21,6 @@ export default function EditMaterial({ open, materialId }) {
         image: '',
         tags: []
     })
-    const [ snackbar, setSnackbar ] = React.useState({ open: false, message: '', severity: 'success' });
 
     React.useEffect(() => {
         const getTagData = async () => {
@@ -97,6 +38,9 @@ export default function EditMaterial({ open, materialId }) {
                     tags: materialTags
                 });
                 setDisplay(true);
+            } else if(materialReq.status === 404) {
+              showSnackbar('対象の勉強記録が見つかりません', 'error');
+              router.push('/materials');
             }
         }
         getTagData();
@@ -106,8 +50,6 @@ export default function EditMaterial({ open, materialId }) {
       event.preventDefault();
       const requestData = {...formData};
         requestData['_method'] = 'PUT';
-        // console.log(requestData);
-        // return ;
       const response = await RestAccess.post('/materials/' + materialId + '/edit',  requestData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -150,8 +92,7 @@ export default function EditMaterial({ open, materialId }) {
   }
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         {display &&
           <>
             <Card>
@@ -261,7 +202,6 @@ export default function EditMaterial({ open, materialId }) {
             </Card>
           </>
         }
-
-    </MainContainer>
+    </>
     )
 };

@@ -1,7 +1,5 @@
 import React from 'react';
-import { styled } from '@mui/material/styles';
-import { Card, CardHeader, CardContent, Button, List, ListItem, ListItemText, Typography, Box } from '@mui/material';
-import { useRouter } from 'next/router';
+import { Box } from '@mui/material';
 import { AuthContext } from '@/context/Auth/AuthContext';
 import { useSnackbar } from '@/context/SnackbarContext';
 import { useState, useContext, useEffect } from 'react';
@@ -12,43 +10,11 @@ import TabPanel from '@mui/lab/TabPanel';
 import Password from './Password';
 import EditAccount from './EditAccount';
 import * as RestAccess from '@/utils/RestAccess';
-import Link from 'next/link'
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
 
 
-export default function Account({ open }) {
-    const { authUser, setAuthUser } = useContext(AuthContext);
+export default function Account() {
+    const { authUser } = useContext(AuthContext);
     const { showSnackbar } = useSnackbar(); 
-    const [ display, setDisplay ] = useState(false);
-    const router = useRouter();
 
     useEffect(() => {
     }, []);
@@ -77,8 +43,7 @@ export default function Account({ open }) {
     }
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         <h2>アカウント情報</h2>
         <TabContext value={value}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -97,6 +62,6 @@ export default function Account({ open }) {
             </TabPanel>
         </TabContext>
        
-    </MainContainer>
+    </>
     )
 };

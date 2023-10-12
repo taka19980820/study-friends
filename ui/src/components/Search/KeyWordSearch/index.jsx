@@ -5,7 +5,6 @@ import Autocomplete from '@mui/material/Autocomplete';
 const SearchBar = ({ data }) => {
   const [inputValue, setInputValue] = useState('');
 
-  // フィルタリングされた検索候補を取得する関数
   const getSuggestions = (value) => {
     const inputValue = value.trim().toLowerCase();
     const inputLength = inputValue.length;

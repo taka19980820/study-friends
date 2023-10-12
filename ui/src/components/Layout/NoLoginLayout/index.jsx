@@ -1,14 +1,18 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import Header from '@/components/Header'
-import SideMenu from '@/components/SideMenu';
+import NoLoginHeader from '@/components/Header/NoLoginHeader'
+import NoLoginSideMenu from '@/components/SideMenu/NoLoginSideMenu';
 import MainContainer from '@/components/MainContainer';
+// import Login from '@/components/User/Login';
+import Container from '@mui/material/Container';
 import useAuth from '@/hooks/useAuth';
 import LoadingPage from '@/components/Loading';
 import { useState } from "react";
+import { useRouter } from 'next/router';
 
-export default function Layout({ redirectTo, children }) {
+export default function NoLoginLayout({ redirectTo, children }) {
+    const router = useRouter();
     const { authUser, loading } = useAuth(redirectTo);
     const [open, setOpen] = useState(false);
   
@@ -16,7 +20,8 @@ export default function Layout({ redirectTo, children }) {
         return <LoadingPage />
     }
   
-    if(!authUser) {
+    if(authUser) {
+        router.push('/');
         return null;
     }
   
@@ -31,8 +36,8 @@ export default function Layout({ redirectTo, children }) {
     return (
     <Box sx={{ display: 'flex' }}>
         <CssBaseline />
-        <Header open={open} handleDrawerOpen={handleDrawerOpen} />
-        <SideMenu open={open} handleDrawerClose={handleDrawerClose} />
+        <NoLoginHeader open={open} handleDrawerOpen={handleDrawerOpen} />
+        <NoLoginSideMenu open={open} handleDrawerClose={handleDrawerClose} />
         <MainContainer open={open}>
             {children}
         </MainContainer>

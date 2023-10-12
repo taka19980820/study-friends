@@ -1,43 +1,11 @@
 import React from 'react';
-import { styled } from '@mui/material/styles';
-import { Card, CardHeader, CardContent, Stack, Typography, Button, Grid } from '@mui/material';
-
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
+import { Card, CardHeader, CardContent, Stack, Typography } from '@mui/material';
 
 
 export default function About({ open }) {
  
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         <h2>スタ友でできること</h2>
         <Card sx={{ mt: 3 }}>
             <CardHeader title="勉強記録をつける" />
@@ -142,7 +110,6 @@ export default function About({ open }) {
             </Stack>
             </CardContent>
         </Card>
-        
-    </MainContainer>
+    </>
     )
 };

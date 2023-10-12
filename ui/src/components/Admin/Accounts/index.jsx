@@ -1,17 +1,12 @@
 import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import { Button } from '@mui/material';
-import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 export default function DataTable({ accounts, deleteAccounts }) {
-    // const [rows, setRows] = React.useState(accounts);
     const [selectedIds, setSelectedIds] = React.useState([]);
-    const { showSnackbar } = useSnackbar();
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const columns = [
         { field: 'id', headerName: 'ID', flex: 1 },

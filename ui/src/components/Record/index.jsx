@@ -1,129 +1,34 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
 import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Collapse from '@mui/material/Collapse';
-import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
-import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
-import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
-import ListItem from '@mui/joy/ListItem';
-import Divider from '@mui/material/Divider';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
-import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import IconButton from '@mui/joy/IconButton';
-
-import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-
-
-import { Person, Circle } from '@mui/icons-material';
-import ImageIcon from '@mui/icons-material/Image';
-import WorkIcon from '@mui/icons-material/Work';
-import BeachAccessIcon from '@mui/icons-material/BeachAccess';
-import PersonIcon from '@mui/icons-material/Person';
-import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
-
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-
-import Link from 'next/link'
-
-import { useTheme } from '@mui/material/styles';
-import AppBar from '@mui/material/AppBar';
-import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-
-import Logs from '../Log'
-
-import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
 import { Bar } from 'react-chartjs-2';
 import { Chart, registerables} from 'chart.js';
 import ChartDataLabels from "chartjs-plugin-datalabels";
 Chart.register(...registerables, ChartDataLabels);
-
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-
 import * as RestAccess from '../../utils/RestAccess';
 import * as dateTimeHandler from '../../utils/dateTimeHandler'
-
-// import MainContent from './MainContent'; // Create a separate component for Main content
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-        // maxWidth: '100%', // Ensure the content doesn't exceed screen width
-        // margin: '0 auto', // Center content horizontally
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  }));
+import { useSnackbar } from '@/context/SnackbarContext';
+import { useRouter } from 'next/router';
 
 const initialEndDate = new Date();
 const initialStartDate = new Date();
 initialStartDate.setDate(initialEndDate.getDate() - 6); 
 
-export default function Record({ open, userId }) {
+export default function Record({ userId }) {
+    const { showSnackbar } = useSnackbar();
+    const router = useRouter();
     const [ studyTime, setStudyTime ] = React.useState({});
     const [ dailyData, setDailyData ] = React.useState({
         labels:[],
@@ -149,24 +54,20 @@ export default function Record({ open, userId }) {
             const studyTime = await RestAccess.get('/users/' + userId + '/study-hours');
             //日別勉強時間（グラフ用データ）
             const dailyData = await RestAccess.get('/users/' + userId + '/study-hours/daily');
-            // //週別勉強時間（グラフ用データ）
-            // const weeklyData = await RestAccess.get('/users/' + userId + '/study-hours/weekly');
-            // //月別勉強時間（グラフ用データ）
-            // const monthlyData = await RestAccess.get('/users/' + userId + '/study-hours/monthly');
-
-
             if(studyTime.status == 200 && dailyData.status == 200) {
                 //グラフ用データ作成
                 const newData = {};
                 const lastWeekDates = getLastWeekDates(endDate);
                 newData.datasets = [...dailyData.data];
                 newData.labels = lastWeekDates;
-
                 setStudyTime(studyTime.data);
                 setDailyData(newData);
                 setDisplay(true);
             } else {
-                console.log('データ取得に失敗しました');
+                showSnackbar('データ取得に失敗しました', 'error');
+                router.push('/');
+                return null;
+
             }
         }
         //グラフ文字サイズ関連
@@ -362,12 +263,6 @@ export default function Record({ open, userId }) {
             console.log('error')
         }
 
-        // const newData = {...data};
-        // newData.labels = getLastHaflYearMonth(newStartDate);
-
-        // setData(newData);
-        // setStartDate(newStartDate);
-        // setEndDate(newEndDate);
     }
 
     const handleNextMonth = async () => {
@@ -390,13 +285,6 @@ export default function Record({ open, userId }) {
         } else {
             console.log('error')
         }
-
-        // const newData = {...data};
-        // newData.labels = getLastHaflYearMonth(newStartDate);
-
-        // setData(newData);
-        // setStartDate(newStartDate);
-        // setEndDate(newEndDate);
     }
     
     //週切り替え
@@ -418,16 +306,8 @@ export default function Record({ open, userId }) {
             setStartDate(newStartDate);
             setEndDate(newEndDate);
         } else {
-            //todo:エラーをstateで管理して、エラー表示する。
             console.log('error')
         }
-
-        // const newData = {...data};
-        // newData.labels = getLastSevenWeekDates(newStartDate);
-
-        // setData(newData);
-        // setStartDate(newStartDate);
-        // setEndDate(newEndDate);
     }
 
     const handleNextWeek = async () => {
@@ -448,16 +328,8 @@ export default function Record({ open, userId }) {
             setStartDate(newStartDate);
             setEndDate(newEndDate);
         } else {
-            //todo:エラーをstateで管理して、エラー表示する。
             console.log('error')
         }
-
-        // const newData = {...data};
-        // newData.labels = getLastSevenWeekDates(newStartDate);
-
-        // setData(newData);
-        // setStartDate(newStartDate);
-        // setEndDate(newEndDate);
     }
 
     //日切り替え
@@ -479,16 +351,8 @@ export default function Record({ open, userId }) {
             setStartDate(newStartDate)
             setEndDate(newEndDate)
         } else {
-            //todo:エラーをstateで管理して、エラー表示する。
             console.log('error')
         }
-
-        // const newData = {...data};
-        // newData.labels = getLastWeekDates(newEndDate);
-
-        // setData(newData);
-        // setStartDate(newStartDate);
-        // setEndDate(newEndDate);
     }
 
     const handleNextDate = async () => {
@@ -509,19 +373,9 @@ export default function Record({ open, userId }) {
             setStartDate(newStartDate)
             setEndDate(newEndDate)
         } else {
-            //todo:エラーをstateで管理して、エラー表示する。
             console.log('error')
         }
-
-        // const newData = {...data};
-        // newData.labels = getLastWeekDates(newEndDate);
-
-        // setData(newData);
-        // setStartDate(newStartDate);
-        // setEndDate(newEndDate);
     }
-
-    
 
     const options = {
         maintainAspectRatio: false,
@@ -566,7 +420,7 @@ export default function Record({ open, userId }) {
           },
           datalabels: {
             display: function(context) {
-                return context.datasetIndex === context.chart.data.datasets.length - 1; // 最後のデータセットのみ表示
+                return context.datasetIndex === context.chart.data.datasets.length - 1;
             },
             formatter: function(value, context) {
                 let total = 0;
@@ -587,8 +441,7 @@ export default function Record({ open, userId }) {
     }
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         <h2 style={{ marginBottom: '10px'}}>勉強時間</h2>
         { display && 
             <React.Fragment>
@@ -695,6 +548,6 @@ export default function Record({ open, userId }) {
                 </Box>
             </React.Fragment>
         }
-    </MainContainer>
+    </>
     )
 };

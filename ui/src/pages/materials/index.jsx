@@ -1,42 +1,13 @@
 import * as React from 'react';
-import { useState } from 'react';
-import Box from '@mui/material/Box';
-import CssBaseline from '@mui/material/CssBaseline';
-import Header from '../../components/Header'
-import SideMenu from '../../components/SideMenu';
-import Materials from '../../components/Material/Materials';
-import Container from '@mui/material/Container';
-import LoadingPage from '../../components/Loading';
-import useAuth from '../../hooks/useAuth';
+import Layout from '@/components/Layout';
+import Materials from '@/components/Material/Materials';
 
-export default function Home() {
-  const { authUser, loading } = useAuth('/login');
-  const [open, setOpen] = useState(false);
-
-  if(loading) {
-      return <LoadingPage />
-  }
-
-  if(!authUser) {
-      return null;
-  }
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
-
+const materials = () => {
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <Header open={open} handleDrawerOpen={handleDrawerOpen} />
-      <SideMenu open={open} handleDrawerClose={handleDrawerClose} />
-      <Container maxWidth="sm">
-        <Materials open={open} />
-      </Container>
-    </Box>
+    <Layout redirectTo="/login">
+      <Materials />
+    </Layout>
   )
 }
+
+export default materials;

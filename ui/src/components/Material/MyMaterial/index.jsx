@@ -1,69 +1,33 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
-// import Typography from '@mui/material/Typography';
 import Typography from '@mui/joy/Typography';
 import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
 import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Collapse from '@mui/material/Collapse';
 import Avatar from '@mui/material/Avatar';
-// import IconButton from '@mui/material/IconButton';
 import { red } from '@mui/material/colors';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import CommentIcon from '@mui/icons-material/Comment';
-
-// import List from '@mui/material/List';
 import List from '@mui/joy/List';
-// import ListItem from '@mui/material/ListItem';
 import ListItem from '@mui/joy/ListItem';
 import Divider from '@mui/material/Divider';
-import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Delete from '@mui/icons-material/Delete';
 import ListItemContent from '@mui/joy/ListItemContent';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
 import IconButton from '@mui/joy/IconButton';
-
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-
-
-import { Person, Circle } from '@mui/icons-material';
-import ImageIcon from '@mui/icons-material/Image';
-import WorkIcon from '@mui/icons-material/Work';
-import BeachAccessIcon from '@mui/icons-material/BeachAccess';
-import PersonIcon from '@mui/icons-material/Person';
-import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Chip from '@mui/material/Chip';
-
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-
-import Link from 'next/link'
 import MuiLink from '@mui/material/Link';
-
-import * as dateTimeHandler from '../../../utils/dateTimeHandler'
 import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { AuthContext } from '../../../context/Auth/AuthContext';
@@ -73,31 +37,12 @@ import CategorySelectDialog from '../../Category/CategorySelectDialog';
 
 export default function MyMaterial({ removeMaterial, materialData, isLiked, categories }) {
     const { authUser } = React.useContext(AuthContext);
-    const router = useRouter();
     const { showSnackbar } = useSnackbar();
-    //削除確認ダイアログ
     const [materialDetailOpen, setMaterialDetailOpen] = React.useState(false);
-    const [materialDetaillValues, setMaterialDetailValues] = React.useState({
-        roomId: null,
-        roomName: '',
-        numMember: null,
-        description: '',
-        member: [],
-        category: '',
-        tags: [],
-        modified: '',
-        ageLimit: null,
-        sexLimit: null,
-        numLimit: null,
-    });
     const handleMaterialDetailOpen = (newValue) => {
-        // setMaterialDetailValues({...roomDetailValues, ...newValue})
         setMaterialDetailOpen(true);
     };
     const handleMaterialDetailClose = () => {
-        // setDetailValues({
-
-        // })
         setMaterialDetailOpen(false);
     };
 
@@ -107,15 +52,6 @@ export default function MyMaterial({ removeMaterial, materialData, isLiked, cate
         setExpanded(!expanded);
     };
     //コメント欄開閉制御ここまで
-    
-    //いいね機能
-    const [favorit, addFavorit] = React.useState(false);
-    const handleFavorit = () => {
-        //apiと通信していいね追加または、削除。
-        //初期状態の時いいねしているならtrueにする。
-        addFavorit(!favorit);
-    };
-    //いいね機能ここまで
 
     //My教材に登録
     const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -145,8 +81,6 @@ export default function MyMaterial({ removeMaterial, materialData, isLiked, cate
     //文字サイズ関連
     const [fontSize, setFontSize] = React.useState(14);
     React.useEffect(() => {
-    //   const windowWidth = window.innerWidth;
-    //   setFontSize(windowWidth < 480 ? 8 : 12);
         const updateFontSize = () => {
             const width = window.innerWidth;
             setFontSize(width < 480 ? 15 : 25);

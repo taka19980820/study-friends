@@ -1,5 +1,4 @@
 import React from 'react';
-import { styled } from '@mui/material/styles';
 import { Card, CardHeader, CardContent, TextField, Button, FormControl, FormHelperText } from '@mui/material';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -10,37 +9,7 @@ import { useSnackbar  } from '../../../context/SnackbarContext';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-export default function EditLog({ open, logId }) {
+export default function EditLog({ logId }) {
     const router = useRouter();
     const { showSnackbar } = useSnackbar();    
     const { register, handleSubmit, formState: { errors }, setValue } = useForm({
@@ -68,7 +37,8 @@ export default function EditLog({ open, logId }) {
                 setValue('study_date', logData.study_date);
                 setValue('memo', logData.memo == null ? '' : logData.memo);
             } else {
-                showSnackbar('エラーが発生しました');
+                showSnackbar('エラーが発生しました', 'error');
+                router.push('/')
             }
         }
         fetchLogData();
@@ -87,7 +57,6 @@ export default function EditLog({ open, logId }) {
       }})
       if(response.status === 200) {
         showSnackbar('勉強記録を更新しました', 'success');
-        // router.push('/');
         router.back();
       } else {
         showSnackbar(response.data.message, 'error');
@@ -97,8 +66,7 @@ export default function EditLog({ open, logId }) {
 
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         <Card>
             <CardHeader title="勉強記録編集" />
             <CardContent>
@@ -179,6 +147,6 @@ export default function EditLog({ open, logId }) {
                 </form>
             </CardContent>
         </Card>
-    </MainContainer>
+    </>
     )
 };

@@ -1,6 +1,4 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
 import Typography from '@mui/joy/Typography';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -25,64 +23,26 @@ import { useContext } from 'react';
 import { AuthContext } from '../../context/Auth/AuthContext';
 import { useSnackbar } from '../../context/SnackbarContext';
 import CategoryEditDialog from '../Category/CategoryEditDialog'
-
-
-
 import { Chart, registerables} from 'chart.js';
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { useRouter } from 'next/router';
 Chart.register(...registerables, ChartDataLabels);
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  }));
 
 const initialEndDate = new Date();
 const initialStartDate = new Date();
 initialStartDate.setDate(initialEndDate.getDate() - 6); 
 
-export default function User({ open, userId }) {
+export default function User({ userId }) {
+    const router = useRouter();
     const { showSnackbar } = useSnackbar();
     const { authUser } = useContext(AuthContext);
     const [value, setValue] = React.useState('1');
-
     const [fontSize, setFontSize] = React.useState(14);
-
     const [ user, setUser ] = React.useState({});
-
     const [ studyTime, setStudyTime ] = React.useState({});
-
     const [ studyLogs, setStudyLogs ] = React.useState([]);
-
     const [ materials, setMaterials ] = React.useState([]);
-
     const [ display, setDisplay ] = React.useState(false);
-
-    const [startDate, setStartDate] = React.useState(initialStartDate);
     const [endDate, setEndDate] = React.useState(initialEndDate);
 
  
@@ -117,6 +77,9 @@ export default function User({ open, userId }) {
                 if(!display) {
                     setDisplay(true);
                 }
+            } else if(userRes.status === 404) {
+                showSnackbar('ユーザーが見つかりませんでした', 'error');
+                router.push('/');
             }
         }
         getAllData();
@@ -154,10 +117,6 @@ export default function User({ open, userId }) {
         };
     }, []);
 
-
-
-
-    
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
@@ -342,9 +301,8 @@ export default function User({ open, userId }) {
         return null;
     }
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
-        <React.Fragment>
+    <>
+        <>
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                 {user.profileimg != null ?
                     <Avatar
@@ -474,8 +432,8 @@ export default function User({ open, userId }) {
                     
                 </TabContext>
             </Box>
-        </React.Fragment>
+        </>
         <CategoryEditDialog open={categoryEditDialogFlag} addCategory={addCategory} editCategory={editCategory} deleteCategory={deleteCategory} categories={categories} categoryDialogClose={categoryDialogClose}/>
-    </MainContainer>
+    </>
     )
 };

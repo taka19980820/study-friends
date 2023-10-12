@@ -1,4 +1,3 @@
-// Main.js
 import React from 'react';
 import Avatar from '@mui/material/Avatar';
 import { red } from '@mui/material/colors';
@@ -10,10 +9,6 @@ import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import Cookies from 'js-cookie';
 import Pusher from 'pusher-js';
-import Echo from 'laravel-echo';
-// import echo from '../../../utils/EchoSetup';
-
-
 
 export default function RoomMessage({ roomId, authUser, msg }) {
     const messageContainerRef = React.useRef(null);

@@ -33,63 +33,29 @@ import * as RestAccess from '../../../utils/RestAccess';
 import { useSnackbar } from '../../../context/SnackbarContext';
 import { AuthContext } from '../../../context/Auth/AuthContext';
 import MaterialFavorite from '../../Favorite/MaterialFavorite';
-import { useRouter } from 'next/router';
 import CategorySelectDialog from '../../Category/CategorySelectDialog';
 
-export default function Material({ open, materialData, isLiked, isRegisterd, categories }) {
+export default function Material({ materialData, isLiked, isRegisterd, categories }) {
     const { authUser } = React.useContext(AuthContext);
-    const router = useRouter();
     const { showSnackbar } = useSnackbar();
-    //削除確認ダイアログ
     const [materialDetailOpen, setMaterialDetailOpen] = React.useState(false);
-    const [materialDetaillValues, setMaterialDetailValues] = React.useState({
-        roomId: null,
-        roomName: '',
-        numMember: null,
-        description: '',
-        member: [],
-        category: '',
-        tags: [],
-        modified: '',
-        ageLimit: null,
-        sexLimit: null,
-        numLimit: null,
-    });
     const handleMaterialDetailOpen = (newValue) => {
-        // setMaterialDetailValues({...roomDetailValues, ...newValue})
         setMaterialDetailOpen(true);
     };
     const handleMaterialDetailClose = () => {
-        // setDetailValues({
-
-        // })
         setMaterialDetailOpen(false);
     };
-
     //コメント欄開閉制御
     const [expanded, setExpanded] = React.useState(false);
     const handleExpandClick = () => {
         setExpanded(!expanded);
     };
     //コメント欄開閉制御ここまで
-    
-    //いいね機能
-    const [favorit, addFavorit] = React.useState(false);
-    const handleFavorit = () => {
-        //apiと通信していいね追加または、削除。
-        //初期状態の時いいねしているならtrueにする。
-        addFavorit(!favorit);
-    };
-    //いいね機能ここまで
 
     //My教材に登録
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [dialogText, setDialogText] = React.useState('');
     const [registerd, setRegisterd] = React.useState(isRegisterd);
-    const handleDialogOpen = (text) => {
-        setDialogText(text)
-        setDialogOpen(true);
-    };
     const handleDialogClose = () => {
         setDialogOpen(false);
     };
@@ -108,18 +74,9 @@ export default function Material({ open, materialData, isLiked, isRegisterd, cat
         </Dialog>
     );
 
-    
-
-
-
-    
-
-    
     //文字サイズ関連
     const [fontSize, setFontSize] = React.useState(14);
     React.useEffect(() => {
-    //   const windowWidth = window.innerWidth;
-    //   setFontSize(windowWidth < 480 ? 8 : 12);
         const updateFontSize = () => {
             const width = window.innerWidth;
             setFontSize(width < 480 ? 15 : 25);
@@ -188,7 +145,6 @@ export default function Material({ open, materialData, isLiked, isRegisterd, cat
         } else {
             showSnackbar('エラーが発生しました', 'error');
         }
-        // console.log(categoryId);
     }
 
     const removeMaterial = async () => {

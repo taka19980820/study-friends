@@ -1,6 +1,4 @@
-// Main.js
 import React from 'react';
-import { styled } from '@mui/material/styles';
 import { Card, CardHeader, CardContent, TextField, Button, FormControl, FormHelperText } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -15,38 +13,7 @@ import { useRouter } from 'next/router';
 import { AuthContext } from '../../../context/Auth/AuthContext';
 import { useForm, Controller } from 'react-hook-form';
 
-
-
-const drawerWidth = 240;
-
-const MainContainer = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: `-${drawerWidth}px`,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: 0,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-  })); 
-
-export default function PostLog({ open }) {
+export default function PostLog() {
     const router = useRouter();
     const { authUser } = React.useContext(AuthContext);
     const { showSnackbar } = useSnackbar();   
@@ -100,8 +67,7 @@ export default function PostLog({ open }) {
     }
 
   return  (
-    <MainContainer open={open}>
-        <DrawerHeader />
+    <>
         { display && 
             <>
               <Card>
@@ -197,6 +163,6 @@ export default function PostLog({ open }) {
               </Card>
             </>
         }
-    </MainContainer>
+    </>
     )
 };

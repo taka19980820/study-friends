@@ -1,21 +1,11 @@
 import React from 'react';
-import { styled, alpha } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import MenuItem from '@mui/material/MenuItem';
-import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
 import Typography from '@mui/material/Typography';
-import InputBase from '@mui/material/InputBase';
-import SearchIcon from '@mui/icons-material/Search';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import MailIcon from '@mui/icons-material/Mail';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import MoreIcon from '@mui/icons-material/MoreVert';
 import Box from '@mui/material/Box';
-// import Search from './Search'; // Assuming you have a Search component
 
 const drawerWidth = 240;
 
@@ -71,7 +61,6 @@ export default function NoLoginHeader({ open, handleDrawerOpen }) {
           variant="h6"
           noWrap
           component="div"
-          sx={{ display: { xs: 'none', sm: 'block' } }}
         >
           スタ友
         </Typography>
