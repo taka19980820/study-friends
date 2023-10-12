@@ -5,7 +5,7 @@ import About from '../../components/About';
 import Layout from '@/components/Layout';
 import NoLoginLayout from '@/components/Layout/NoLoginLayout';
 
-export default function about() {
+export default function AboutPage() {
   const { authUser } = useContext(AuthContext);
 
   if(authUser) {

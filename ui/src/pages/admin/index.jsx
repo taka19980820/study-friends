@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import Admin from '@/components/Admin';
 
 
-const admin = () => {
+const AdminPage = () => {
   return (
     <Layout redirectTo="/login">
       <Admin />
@@ -11,4 +11,4 @@ const admin = () => {
   )
 }
 
-export default admin;
+export default AdminPage;

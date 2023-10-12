@@ -4,7 +4,7 @@ import MakeRoom from '@/components/Room/MakeRoom';
 
 import { useRouter } from 'next/router';
 
-const makeRoom = () => {
+const MakeRoomPage = () => {
   const router = useRouter();
   const { id } = router.query;
   return (
@@ -14,4 +14,4 @@ const makeRoom = () => {
   )
 }
 
-export default makeRoom;
+export default MakeRoomPage;

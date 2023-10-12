@@ -2,7 +2,7 @@ import * as React from 'react';
 import Layout from '@/components/Layout';
 import PostLog from '@/components/Log/PostLog';
 
-const post = () => {
+const PostLogPage = () => {
   return (
     <Layout redirectTo="/login">
       <PostLog />
@@ -10,4 +10,4 @@ const post = () => {
   )
 }
 
-export default post;
+export default PostLogPage;

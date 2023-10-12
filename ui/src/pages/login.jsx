@@ -3,10 +3,12 @@ import Login from '../components/User/Login';
 import Layout from '@/components/Layout';
 import NoLoginLayout from '@/components/Layout/NoLoginLayout';
 
-export default function login() {
+const LoginPage = () => {
   return (
     <NoLoginLayout redirectTo={null}>
       <Login />
     </NoLoginLayout>
   )
 }
+
+export default LoginPage;

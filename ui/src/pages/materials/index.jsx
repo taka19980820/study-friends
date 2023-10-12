@@ -2,7 +2,7 @@ import * as React from 'react';
 import Layout from '@/components/Layout';
 import Materials from '@/components/Material/Materials';
 
-const materials = () => {
+const MaterialsPage = () => {
   return (
     <Layout redirectTo="/login">
       <Materials />
@@ -10,4 +10,4 @@ const materials = () => {
   )
 }
 
-export default materials;
+export default MaterialsPage;

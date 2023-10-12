@@ -2,7 +2,7 @@ import * as React from 'react';
 import Layout from '@/components/Layout';
 import Rooms from '@/components/Room/Rooms';
 
-const rooms = () => {
+const RoomsPage = () => {
   return (
     <Layout redirectTo="/login">
       <Rooms />
@@ -10,4 +10,4 @@ const rooms = () => {
   )
 }
 
-export default rooms;
+export default RoomsPage;

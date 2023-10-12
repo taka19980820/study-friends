@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import User from '@/components/User';
 import { useRouter } from 'next/router';
 
-const user = () => {
+const UserPage = () => {
   const router = useRouter();
   const { id } = router.query;
   return (
@@ -13,4 +13,4 @@ const user = () => {
   )
 }
 
-export default user;
+export default UserPage;

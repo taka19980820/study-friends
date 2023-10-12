@@ -2,7 +2,7 @@ import * as React from 'react';
 import Layout from '@/components/Layout';
 import EditUser from '@/components/User/EditUser';
 
-const editUser = () => {
+const EditUserPage = () => {
   return (
     <Layout redirectTo="/login">
       <EditUser />
@@ -10,4 +10,4 @@ const editUser = () => {
   )
 }
 
-export default editUser;
+export default EditUserPage;

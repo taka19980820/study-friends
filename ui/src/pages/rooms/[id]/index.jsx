@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import Room from '@/components/Room';
 import { useRouter } from 'next/router';
 
-const room = () => {
+const RoomPage = () => {
   const router = useRouter();
   const { id } = router.query;
   return (
@@ -13,4 +13,4 @@ const room = () => {
   )
 }
 
-export default room;
+export default RoomPage;

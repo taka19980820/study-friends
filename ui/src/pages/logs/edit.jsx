@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import EditLog from '@/components/Log/EditLog';
 import { useRouter } from 'next/router';
 
-const editLog = () => {
+const EditLogPage = () => {
   const router = useRouter();
   const { logId } = router.query;
   return (
@@ -13,4 +13,4 @@ const editLog = () => {
   )
 }
 
-export default editLog;
+export default EditLogPage;

@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import Account from '@/components/Account';
 
 
-const account = () => {
+const AccountPage = () => {
   return (
     <Layout redirectTo="/login">
       <Account />
@@ -11,4 +11,4 @@ const account = () => {
   )
 }
 
-export default account;
+export default AccountPage;

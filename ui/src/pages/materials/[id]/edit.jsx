@@ -3,7 +3,7 @@ import Layout from '@/components/Layout';
 import EditMaterial from '@/components/Material/Edit';
 import { useRouter } from 'next/router';
 
-const editMaterial = () => {
+const EditMaterialPage = () => {
   const router = useRouter();
   const { id } = router.query;
 
@@ -14,4 +14,4 @@ const editMaterial = () => {
   )
 }
 
-export default editMaterial;
+export default EditMaterialPage;
